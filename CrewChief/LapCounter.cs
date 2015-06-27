@@ -6,6 +6,8 @@ using CrewChief.Data;
 
 namespace CrewChief.Events
 {
+    // note this only works for DTM as non-DTM events don't have number of laps *or* a race time remaining
+    // field in the data block
     class LapCounter : AbstractEvent
     {
         private String folderLastLap = "lap_counter/last_lap";
