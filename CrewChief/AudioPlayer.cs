@@ -15,9 +15,9 @@ namespace CrewChief
 
         // defaults to /sounds in the root folder of the application. If running in debug mode this will have to be
         // a different path
-        private String soundFolderName = Properties.Settings.Default.sound_files_path;
+        // private String soundFolderName = Properties.Settings.Default.sound_files_path;
         // for debug, something like..
-        //private String soundFolderName = "C:/projects/crewchief_c_sharp/CrewChief/CrewChief/sounds";
+        private String soundFolderName = "C:/projects/crewchief_c_sharp/CrewChief/CrewChief/sounds";
 
         private Random random = new Random();
     
@@ -74,6 +74,7 @@ namespace CrewChief
                 Thread.Sleep(1000);
                 long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                 List<String> keysToRemove = new List<String>();
+                List<String> keysToPlay = new List<String>();
                 lock (Lock)
                 {
                     if (queuedClips.Count > 0)
@@ -87,7 +88,7 @@ namespace CrewChief
                         {
                             if (entry.Value.abstractEvent.isClipStillValid(entry.Key))
                             {
-                                playSound(entry.Key);
+                                keysToPlay.Add(entry.Key);
                             }
                             else
                             {
@@ -95,6 +96,10 @@ namespace CrewChief
                             }
                             keysToRemove.Add(entry.Key);
                         }
+                    }
+                    if (keysToPlay.Count > 0)
+                    {
+                        playSounds(keysToPlay);
                     }
                     foreach (String key in keysToRemove)
                     {
@@ -148,16 +153,21 @@ namespace CrewChief
             }
         }
     
-        private void playSound(String eventName) {
-            List<SoundPlayer> clipsList = clips[eventName];
-            int index = random.Next(0, clipsList.Count);
-            SoundPlayer clip = clipsList[index];            
-            Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);    
+        private void playSounds(List<String> eventNames) {
             List<SoundPlayer> bleeps = clips["bleep"];
             int bleepIndex = random.Next(0, bleeps.Count);
             SoundPlayer bleep = bleeps[bleepIndex];
             bleep.PlaySync();
-            clip.PlaySync();
+            foreach (String eventName in eventNames)
+            {
+                List<SoundPlayer> clipsList = clips[eventName];
+                int index = random.Next(0, clipsList.Count);
+                SoundPlayer clip = clipsList[index];
+                Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
+                clip.PlaySync();
+            }
+            bleep.PlaySync();
+            
             Console.WriteLine("finished playing");
         }
         
