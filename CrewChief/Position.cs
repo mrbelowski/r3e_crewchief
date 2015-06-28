@@ -52,6 +52,7 @@ namespace CrewChief.Events
                     previousPosition = currentState.Position;
                 } else {
                     if (previousPosition != currentState.Position) {
+                        Console.WriteLine("Position event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);
                         switch (currentState.Position) {
                             case 1 :
                                 audioPlayer.queueClip(folderP1, 0, this);
@@ -82,8 +83,7 @@ namespace CrewChief.Events
                                 break;
                             case 10 :
                                 audioPlayer.queueClip(folderP10, 0, this);
-                                break;
-                            
+                                break;                            
                         }
                         previousPosition = currentState.Position;
                     }

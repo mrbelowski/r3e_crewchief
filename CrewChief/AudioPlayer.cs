@@ -25,6 +25,10 @@ namespace CrewChief
 
         static object Lock = new object();
 
+        List<String> enabledSounds = new List<String>();
+
+        Boolean enableBeep = false;
+
         class QueueObject
         {
             public long dueTime;
@@ -38,34 +42,70 @@ namespace CrewChief
 
         public void initialise() {
             Console.WriteLine("Sound dir = " + soundFolderName);
-            DirectoryInfo soundDirectory = new DirectoryInfo(soundFolderName);
-            FileInfo[] bleepFiles = soundDirectory.GetFiles();
-            foreach (FileInfo bleepFile in bleepFiles) {
-                openAndCacheClip("bleep", bleepFile.FullName);
-            }
-            DirectoryInfo[] eventFolders = soundDirectory.GetDirectories();
-
-            foreach (DirectoryInfo eventFolder in eventFolders) {
-                Console.WriteLine("Got event folder " + eventFolder.Name);
-                DirectoryInfo[] eventDetailFolders = eventFolder.GetDirectories();
-                foreach (DirectoryInfo eventDetailFolder in eventDetailFolders)
+            try
+            {
+                DirectoryInfo soundDirectory = new DirectoryInfo(soundFolderName);
+                FileInfo[] bleepFiles = soundDirectory.GetFiles();
+                foreach (FileInfo bleepFile in bleepFiles)
                 {
-                    Console.WriteLine("Got event detail subfolder " + eventDetailFolder.Name);
-                    FileInfo[] soundFiles = eventDetailFolder.GetFiles();
-                    foreach (FileInfo soundFile in soundFiles)
+                    if (bleepFile.Name.EndsWith(".wav"))
                     {
-                        Console.WriteLine("got sound file " + soundFile.FullName);
-                        openAndCacheClip(eventFolder + "/" + eventDetailFolder, soundFile.FullName);
-                    }                    
+                        enableBeep = true;
+                        openAndCacheClip("bleep", bleepFile.FullName);
+                    }
                 }
-            }
-            // now queue the smoke test
-            queueClip("smoke_test/test", 0, new SmokeTest(this));
+                DirectoryInfo[] eventFolders = soundDirectory.GetDirectories();
+                foreach (DirectoryInfo eventFolder in eventFolders)
+                {
+                    try {
+                        Console.WriteLine("Got event folder " + eventFolder.Name);
+                        DirectoryInfo[] eventDetailFolders = eventFolder.GetDirectories();
+                        foreach (DirectoryInfo eventDetailFolder in eventDetailFolders)
+                        {
+                            Console.WriteLine("Got event detail subfolder " + eventDetailFolder.Name);
+                            String fullEventName = eventFolder + "/" + eventDetailFolder;
+                            try
+                            {
+                                FileInfo[] soundFiles = eventDetailFolder.GetFiles();
+                                foreach (FileInfo soundFile in soundFiles)
+                                {
+                                    if (soundFile.Name.EndsWith(".wav"))
+                                    {
+                                        Console.WriteLine("Got sound file " + soundFile.FullName);
+                                        openAndCacheClip(eventFolder + "/" + eventDetailFolder, soundFile.FullName);
+                                        if (!enabledSounds.Contains(fullEventName))
+                                        {
+                                            enabledSounds.Add(fullEventName);
+                                        }
+                                    }
+                                }
+                                if (!enabledSounds.Contains(fullEventName))
+                                {
+                                    Console.WriteLine("Event " + fullEventName + " has no sound files");
+                                }
+                            }
+                            catch (DirectoryNotFoundException e)
+                            {
+                                Console.WriteLine("Event subfolder " + fullEventName + " not found");
+                            }
+                        }
+                    }
+                    catch (DirectoryNotFoundException e)
+                    {
+                        Console.WriteLine("Unable to find events folder");
+                    }
+                }
+                // now queue the smoke test
+                queueClip("smoke_test/test", 0, new SmokeTest(this));
 
-            // spawn a Thread to monitor the queue
-            ThreadStart work = monitorQueue;
-            Thread thread = new Thread(work);
-            thread.Start();            
+                // spawn a Thread to monitor the queue
+                ThreadStart work = monitorQueue;
+                Thread thread = new Thread(work);
+                thread.Start();
+            }
+            catch (DirectoryNotFoundException e) {
+                Console.WriteLine("Unable to find sounds directory - path: " + soundFolderName);
+            }
         }
 
         private void monitorQueue() {
@@ -86,7 +126,7 @@ namespace CrewChief
                         Console.WriteLine("Sound " + entry.Key + " is queued to play after " + entry.Value.dueTime + ". It is now " + milliseconds);
                         if (entry.Value.dueTime <= milliseconds)
                         {
-                            if (entry.Value.abstractEvent.isClipStillValid(entry.Key))
+                            if (entry.Value.abstractEvent.isClipStillValid(entry.Key) && !keysToPlay.Contains(entry.Key))
                             {
                                 keysToPlay.Add(entry.Key);
                             }
@@ -154,20 +194,47 @@ namespace CrewChief
         }
     
         private void playSounds(List<String> eventNames) {
-            List<SoundPlayer> bleeps = clips["bleep"];
-            int bleepIndex = random.Next(0, bleeps.Count);
-            SoundPlayer bleep = bleeps[bleepIndex];
-            bleep.PlaySync();
-            foreach (String eventName in eventNames)
-            {
-                List<SoundPlayer> clipsList = clips[eventName];
-                int index = random.Next(0, clipsList.Count);
-                SoundPlayer clip = clipsList[index];
-                Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
-                clip.PlaySync();
+            Boolean oneOrMoreEventsEnabled = false;
+            foreach (String eventName in eventNames) {
+                if (enabledSounds.Contains(eventName))
+                {
+                    oneOrMoreEventsEnabled = true;
+                }
             }
-            bleep.PlaySync();
-            
+            if (oneOrMoreEventsEnabled)
+            {
+                SoundPlayer bleep = null;
+                if (enableBeep)
+                {
+                    List<SoundPlayer> bleeps = clips["bleep"];
+                    int bleepIndex = random.Next(0, bleeps.Count);
+                    bleep = bleeps[bleepIndex];
+                    bleep.PlaySync();
+                }
+                foreach (String eventName in eventNames)
+                {
+                    if (enabledSounds.Contains(eventName))
+                    {
+                        List<SoundPlayer> clipsList = clips[eventName];
+                        int index = random.Next(0, clipsList.Count);
+                        SoundPlayer clip = clipsList[index];
+                        Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
+                        clip.PlaySync();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Event " + eventName + " is disabled");
+                    }
+                }
+                if (enableBeep && bleep != null)
+                {
+                    bleep.PlaySync();
+                }
+            }
+            else
+            {
+                Console.WriteLine("All events " + String.Join(",", eventNames) + " are disabled");
+            }
             Console.WriteLine("finished playing");
         }
         

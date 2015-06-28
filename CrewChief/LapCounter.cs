@@ -43,8 +43,9 @@ namespace CrewChief.Events
         
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (isRaceMode && isNewLap) {
+            if (isRaceMode && isNewLap && currentState.NumberOfLaps > 0) {
                 // a new lap has been started in race mode
+                Console.WriteLine("LapCounter event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);
 
                 // Note this will only trigger for DTM races with a number of laps - non DTM races are
                 // timed and there's no data about the race time in the memory block
@@ -57,7 +58,7 @@ namespace CrewChief.Events
                     {
                         audioPlayer.queueClip(folderPodiumFinish, 0, this);
                     }
-                    else
+                    else if (currentState.Position >= 4)
                     {
                         audioPlayer.queueClip(folderFinishedRace, 0, this);
                     }
@@ -67,15 +68,21 @@ namespace CrewChief.Events
                         audioPlayer.queueClip(folderLastLapLeading, 0, this);
                     } else if (currentState.Position < 4) {
                         audioPlayer.queueClip(folderLastLapTopThree, 0, this);
-                    } else {
+                    }
+                    else if (currentState.Position >= 4)
+                    {
                         audioPlayer.queueClip(folderLastLap, 0, this);
                     }
-                } else if (currentState.CompletedLaps == currentState.NumberOfLaps - 2) {
+                }
+                else if (currentState.CompletedLaps == currentState.NumberOfLaps - 2)
+                {
                     if (currentState.Position == 1) {
                         audioPlayer.queueClip(folderTwoLeftLeading, 0, this);
                     } else if (currentState.Position < 4) {
                         audioPlayer.queueClip(folderTwoLeftTopThree, 0, this);
-                    } else {
+                    }
+                    else if (currentState.Position >= 4)
+                    {
                         audioPlayer.queueClip(folderTwoLeft, 0, this);
                     }
                 } 
