@@ -15,9 +15,9 @@ namespace CrewChief
 
         // defaults to /sounds in the root folder of the application. If running in debug mode this will have to be
         // a different path
-        // private String soundFolderName = Properties.Settings.Default.sound_files_path;
+        private String soundFolderName = Properties.Settings.Default.sound_files_path;
         // for debug, something like..
-        private String soundFolderName = "C:/projects/crewchief_c_sharp/CrewChief/CrewChief/sounds";
+        // private String soundFolderName = "C:/projects/crewchief_c_sharp/CrewChief/CrewChief/sounds";
 
         private Random random = new Random();
     
