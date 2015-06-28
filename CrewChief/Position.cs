@@ -26,7 +26,7 @@ namespace CrewChief.Events
 
         private String folderP9 = "position/p9";
 
-        private String folderP10 = "position/p1";
+        private String folderP10 = "position/p10";
 
         private int previousPosition;
 

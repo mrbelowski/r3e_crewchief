@@ -62,6 +62,10 @@ namespace CrewChief.Events
                     {
                         audioPlayer.queueClip(folderFinishedRace, 0, this);
                     }
+                    else
+                    {
+                        Console.WriteLine("Race finished but position is 0");
+                    }
                 }
                 else if (currentState.CompletedLaps == currentState.NumberOfLaps - 1) {
                     if (currentState.Position == 1) {
@@ -72,6 +76,10 @@ namespace CrewChief.Events
                     else if (currentState.Position >= 4)
                     {
                         audioPlayer.queueClip(folderLastLap, 0, this);
+                    }
+                    else
+                    {
+                        Console.WriteLine("1 lap left but position is 0");
                     }
                 }
                 else if (currentState.CompletedLaps == currentState.NumberOfLaps - 2)
@@ -84,6 +92,10 @@ namespace CrewChief.Events
                     else if (currentState.Position >= 4)
                     {
                         audioPlayer.queueClip(folderTwoLeft, 0, this);
+                    }
+                    else
+                    {
+                        Console.WriteLine("2 laps left but position is 0");
                     }
                 } 
             }
