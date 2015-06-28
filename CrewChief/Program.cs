@@ -53,8 +53,6 @@ namespace CrewChief
             eventsList.Add(new Fuel(audioPlayer));
             eventsList.Add(new Position(audioPlayer));
 
-            SmokeTest smokeTest = new SmokeTest(audioPlayer);
-            smokeTest.trigger(new Shared(), new Shared());
             while (true)
             {
                 var timeNow = DateTime.UtcNow;
