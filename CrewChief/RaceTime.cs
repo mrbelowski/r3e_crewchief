@@ -46,66 +46,70 @@ namespace CrewChief.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            double gameTimeMinutes = currentState.Player.GameSimulationTime / 60;
-            if (!played5mins && gameTimeMinutes > 5)
+            // only do this if the session doesn't have a fixed number of laps
+            if (currentState.NumberOfLaps < 1)
             {
-                played5mins = true;
-                audioPlayer.queueClip(folder5mins, 0, this);
-            }
-            else if (!played10mins && gameTimeMinutes > 10)
-            {
-                played10mins = true;
-                audioPlayer.queueClip(folder10mins, 0, this);
-            }
-            else if (!played15mins && gameTimeMinutes > 15)
-            {
-                played15mins = true;
-                audioPlayer.queueClip(folder15mins, 0, this);
-            }
-            else if (!played20mins && gameTimeMinutes > 20)
-            {
-                played20mins = true;
-                audioPlayer.queueClip(folder20mins, 0, this);
-            }
-            else if (!played25mins && gameTimeMinutes > 25)
-            {
-                played25mins = true;
-                audioPlayer.queueClip(folder25mins, 0, this);
-            }
-            else if (!played30mins && gameTimeMinutes > 30)
-            {
-                played30mins = true;
-                audioPlayer.queueClip(folder30mins, 0, this);
-            }
-            else if (!played35mins && gameTimeMinutes > 35)
-            {
-                played35mins = true;
-                audioPlayer.queueClip(folder35mins, 0, this);
-            }
-            else if (!played40mins && gameTimeMinutes > 40)
-            {
-                played40mins = true;
-                audioPlayer.queueClip(folder40mins, 0, this);
-            }
-            else if (!played45mins && gameTimeMinutes > 45)
-            {
-                played45mins = true;
-                audioPlayer.queueClip(folder45mins, 0, this);
-            }
-            else if (!played50mins && gameTimeMinutes > 50)
-            {
-                played50mins = true;
-                audioPlayer.queueClip(folder50mins, 0, this);
-            }
-            else if (!played55mins && gameTimeMinutes > 55)
-            {
-                played55mins = true;
-                audioPlayer.queueClip(folder55mins, 0, this);
-            }
-            else if (!played60mins && gameTimeMinutes > 60)
-            {
-                played60mins = true;
-                audioPlayer.queueClip(folder60mins, 0, this);
+                double gameTimeMinutes = currentState.Player.GameSimulationTime / 60;
+                if (!played5mins && gameTimeMinutes > 5)
+                {
+                    played5mins = true;
+                    audioPlayer.queueClip(folder5mins, 0, this);
+                }
+                else if (!played10mins && gameTimeMinutes > 10)
+                {
+                    played10mins = true;
+                    audioPlayer.queueClip(folder10mins, 0, this);
+                }
+                else if (!played15mins && gameTimeMinutes > 15)
+                {
+                    played15mins = true;
+                    audioPlayer.queueClip(folder15mins, 0, this);
+                }
+                else if (!played20mins && gameTimeMinutes > 20)
+                {
+                    played20mins = true;
+                    audioPlayer.queueClip(folder20mins, 0, this);
+                }
+                else if (!played25mins && gameTimeMinutes > 25)
+                {
+                    played25mins = true;
+                    audioPlayer.queueClip(folder25mins, 0, this);
+                }
+                else if (!played30mins && gameTimeMinutes > 30)
+                {
+                    played30mins = true;
+                    audioPlayer.queueClip(folder30mins, 0, this);
+                }
+                else if (!played35mins && gameTimeMinutes > 35)
+                {
+                    played35mins = true;
+                    audioPlayer.queueClip(folder35mins, 0, this);
+                }
+                else if (!played40mins && gameTimeMinutes > 40)
+                {
+                    played40mins = true;
+                    audioPlayer.queueClip(folder40mins, 0, this);
+                }
+                else if (!played45mins && gameTimeMinutes > 45)
+                {
+                    played45mins = true;
+                    audioPlayer.queueClip(folder45mins, 0, this);
+                }
+                else if (!played50mins && gameTimeMinutes > 50)
+                {
+                    played50mins = true;
+                    audioPlayer.queueClip(folder50mins, 0, this);
+                }
+                else if (!played55mins && gameTimeMinutes > 55)
+                {
+                    played55mins = true;
+                    audioPlayer.queueClip(folder55mins, 0, this);
+                }
+                else if (!played60mins && gameTimeMinutes > 60)
+                {
+                    played60mins = true;
+                    audioPlayer.queueClip(folder60mins, 0, this);
+                }
             }
         }
     }
