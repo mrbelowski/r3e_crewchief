@@ -17,7 +17,7 @@ namespace CrewChief
         // a different path
         private String soundFolderName = Properties.Settings.Default.sound_files_path;
         // for debug, something like..
-        // private String soundFolderName = "C:/projects/crewchief_c_sharp/CrewChief/CrewChief/sounds";
+        private String debugSoundFolderName = "C:/projects/crewchief_c_sharp/CrewChief/CrewChief/sounds";
 
         private Random random = new Random();
     
@@ -44,7 +44,15 @@ namespace CrewChief
             Console.WriteLine("Sound dir = " + soundFolderName);
             try
             {
-                DirectoryInfo soundDirectory = new DirectoryInfo(soundFolderName);
+                DirectoryInfo soundDirectory;
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    soundDirectory = new DirectoryInfo(debugSoundFolderName);
+                }
+                else
+                {
+                    soundDirectory = new DirectoryInfo(soundFolderName);
+                }
                 FileInfo[] bleepFiles = soundDirectory.GetFiles();
                 foreach (FileInfo bleepFile in bleepFiles)
                 {

@@ -52,6 +52,7 @@ namespace CrewChief
             eventsList.Add(new DTMTyreChange(audioPlayer));            
             eventsList.Add(new Fuel(audioPlayer));
             eventsList.Add(new Position(audioPlayer));
+            eventsList.Add(new RaceTime(audioPlayer));
 
             while (true)
             {
@@ -86,7 +87,7 @@ namespace CrewChief
                     double gameRunningTime = currentState.Player.GameSimulationTime;
                     // the game has been running for less than a single update interval, so we need to reset all our local state
                     
-                    if (gameRunningTime < 2 && !stateCleared)
+                    if (gameRunningTime < _timeInterval.Seconds && !stateCleared)
                     {
                         Console.WriteLine("Clearing game state...");
                         foreach (AbstractEvent abstractEvent in eventsList)
@@ -95,7 +96,7 @@ namespace CrewChief
                         }
                         stateCleared = true;
                     }
-                    else if (gameRunningTime > 2) 
+                    else if (gameRunningTime > _timeInterval.Seconds) 
                     {
                         stateCleared = false;
                         foreach (AbstractEvent abstractEvent in eventsList)

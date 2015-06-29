@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractEvent.cs" />
+    <Compile Include="RaceTime.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="LapCounter.cs" />
     <Compile Include="AudioPlayer.cs" />
