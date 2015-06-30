@@ -31,5 +31,32 @@ namespace CrewChief.Properties {
                 return ((string)(this["sound_files_path"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("background_sounds")]
+        public string background_sound_files_path {
+            get {
+                return ((string)(this["background_sound_files_path"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.5")]
+        public float background_volume {
+            get {
+                return ((float)(this["background_volume"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool play_test_clips_on_startup {
+            get {
+                return ((bool)(this["play_test_clips_on_startup"]));
+            }
+        }
     }
 }

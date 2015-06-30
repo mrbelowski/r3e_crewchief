@@ -30,6 +30,8 @@ namespace CrewChief.Events
 
         private int previousPosition;
 
+        private Boolean eventHasFiredInThisSession;
+
         public Position(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -38,6 +40,7 @@ namespace CrewChief.Events
         protected override void clearStateInternal()
         {
             previousPosition = 0;
+            eventHasFiredInThisSession = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -48,10 +51,11 @@ namespace CrewChief.Events
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
         {
             if (isNewLap) {
-                if (previousPosition < 1 && currentState.Position > 0) {
+                if (previousPosition == 0 && currentState.Position > 0) {
                     previousPosition = currentState.Position;
                 } else {
-                    if (previousPosition != currentState.Position) {
+                    if (!eventHasFiredInThisSession || previousPosition != currentState.Position) {
+                        eventHasFiredInThisSession = currentState.Position <= 10;
                         Console.WriteLine("Position event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);
                         switch (currentState.Position) {
                             case 1 :

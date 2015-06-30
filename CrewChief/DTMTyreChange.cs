@@ -107,14 +107,16 @@ namespace CrewChief.Events
                         }
                         else if (currentState.CompletedLaps == pitWindowOpenLap)
                         {
+                            audioPlayer.setBackgroundSound(AudioPlayer.dtmPitWindowOpenBackground);
                             audioPlayer.queueClip(folderDTMPitWindowOpen, 0, this);
                         }
                         else if (currentState.CompletedLaps == pitWindowClosingLap)
                         {
                             audioPlayer.queueClip(folderDTMPitWindowClosing, 0, this);
                         }
-                        else if (currentState.CompletedLaps == pitWindowClosingLap)
+                        else if (currentState.CompletedLaps == pitWindowClosingLap + 1)
                         {
+                            audioPlayer.setBackgroundSound(AudioPlayer.dtmPitWindowClosedBackground);
                             audioPlayer.queueClip(folderDTMPitWindowClosed, 0, this);
                         }
                     }

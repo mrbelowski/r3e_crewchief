@@ -31,6 +31,8 @@ namespace CrewChief
 
         Boolean stateCleared = false;
 
+        double lastGameStateTime = 0;
+
         public void Dispose()
         {
             _view.Dispose();
@@ -85,9 +87,10 @@ namespace CrewChief
 
                     // how long has the game been running?
                     double gameRunningTime = currentState.Player.GameSimulationTime;
-                    // the game has been running for less than a single update interval, so we need to reset all our local state
-                    
-                    if (gameRunningTime < _timeInterval.Seconds && !stateCleared)
+                    // if we've gone back in time, this means a new session has started - 
+                    // clear all the game state
+                    if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime)
+                        && !stateCleared)
                     {
                         Console.WriteLine("Clearing game state...");
                         foreach (AbstractEvent abstractEvent in eventsList)
@@ -104,6 +107,7 @@ namespace CrewChief
                             abstractEvent.trigger(lastState, currentState);
                         }
                     }
+                    lastGameStateTime = currentState.Player.GameSimulationTime;
                 }
             }
         }

@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Media;
 using CrewChief.Events;
+using System.Windows.Media;
 
 namespace CrewChief
 {
@@ -13,11 +14,11 @@ namespace CrewChief
     {
         private Dictionary<String, List<SoundPlayer>> clips = new Dictionary<String, List<SoundPlayer>>();
 
-        // defaults to /sounds in the root folder of the application. If running in debug mode this will have to be
-        // a different path
         private String soundFolderName = Properties.Settings.Default.sound_files_path;
-        // for debug, something like..
-        private String debugSoundFolderName = "C:/projects/crewchief_c_sharp/CrewChief/CrewChief/sounds";
+
+        private String backgroundFolderName = Properties.Settings.Default.background_sound_files_path;
+
+        private float volume = Properties.Settings.Default.background_volume;
 
         private Random random = new Random();
     
@@ -27,7 +28,34 @@ namespace CrewChief
 
         List<String> enabledSounds = new List<String>();
 
-        Boolean enableBeep = false;
+        Boolean enableStartBleep = false;
+
+        Boolean enableEndBleep = false;
+
+        MediaPlayer backgroundPlayer;
+
+        private String soundFilesPath;
+
+        private String backgroundFilesPath;
+
+        // TODO: sort looping callback out so we don't need this...
+        private int backgroundLeadout = 30;
+
+        public static String dtmPitWindowOpenBackground = "dtm_pit_window_open.wav";
+
+        public static String dtmPitWindowClosedBackground = "dtm_pit_window_closed.wav";
+
+        // only the monitor Thread can request a reload of the background wav file, so
+        // the events thread will have to set these variables to ask for a reload
+        private Boolean loadNewBackground = false;
+        private String backgroundToLoad;
+
+        // test clips are only played on startup when they're enabled
+        private String[] testClips1 = { "position/p1" };
+
+        private int testClipsDelay = 5000;
+
+        private String[] testClips2 = { "fuel/half_distance_low_fuel", "race_time/twenty_five_minutes"};
 
         class QueueObject
         {
@@ -41,25 +69,41 @@ namespace CrewChief
         }
 
         public void initialise() {
-            Console.WriteLine("Sound dir = " + soundFolderName);
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                soundFilesPath = Path.Combine(Path.GetDirectoryName(
+                                        System.Reflection.Assembly.GetEntryAssembly().Location), @"..\", @"..\", soundFolderName);
+                backgroundFilesPath = Path.Combine(Path.GetDirectoryName(
+                                        System.Reflection.Assembly.GetEntryAssembly().Location), @"..\", @"..\", backgroundFolderName);
+            }
+            else
+            {
+                soundFilesPath = Path.Combine(Path.GetDirectoryName(
+                                        System.Reflection.Assembly.GetEntryAssembly().Location), soundFolderName);
+                backgroundFilesPath = Path.Combine(Path.GetDirectoryName(
+                                            System.Reflection.Assembly.GetEntryAssembly().Location), backgroundFolderName);
+            }
+            Console.WriteLine("Sound dir full path = " + soundFilesPath);
+            Console.WriteLine("Backgroun sound dir full path = " + backgroundFilesPath);
             try
             {
-                DirectoryInfo soundDirectory;
-                if (System.Diagnostics.Debugger.IsAttached)
-                {
-                    soundDirectory = new DirectoryInfo(debugSoundFolderName);
-                }
-                else
-                {
-                    soundDirectory = new DirectoryInfo(soundFolderName);
-                }
+                DirectoryInfo soundDirectory = new DirectoryInfo(soundFilesPath);
+                Console.WriteLine(soundDirectory);
                 FileInfo[] bleepFiles = soundDirectory.GetFiles();
                 foreach (FileInfo bleepFile in bleepFiles)
                 {
                     if (bleepFile.Name.EndsWith(".wav"))
                     {
-                        enableBeep = true;
-                        openAndCacheClip("bleep", bleepFile.FullName);
+                        if (bleepFile.Name.StartsWith("start"))
+                        {
+                            enableStartBleep = true;
+                            openAndCacheClip("start_bleep", bleepFile.FullName);
+                        }
+                        else if (bleepFile.Name.StartsWith("end"))
+                        {
+                            enableEndBleep = true;
+                            openAndCacheClip("end_bleep", bleepFile.FullName);
+                        }
                     }
                 }
                 DirectoryInfo[] eventFolders = soundDirectory.GetDirectories();
@@ -103,21 +147,54 @@ namespace CrewChief
                         Console.WriteLine("Unable to find events folder");
                     }
                 }
-                // now queue the smoke test
-                queueClip("smoke_test/test", 0, new SmokeTest(this));
-
+                
                 // spawn a Thread to monitor the queue
                 ThreadStart work = monitorQueue;
                 Thread thread = new Thread(work);
                 thread.Start();
+                playTestClips();
             }
             catch (DirectoryNotFoundException e) {
                 Console.WriteLine("Unable to find sounds directory - path: " + soundFolderName);
             }
         }
 
+        private void playTestClips()
+        {
+            queueClip("smoke_test/test", 0, null);
+            // now queue some tests...
+            if (Properties.Settings.Default.play_test_clips_on_startup)
+            {
+                if (testClips1.Length > 0)
+                {
+                    foreach (String testClip in testClips1)
+                    {
+                        queueClip(testClip, 0, null);
+                    }
+                }
+                if (testClipsDelay > 0 && testClips2.Length > 0)
+                {
+                    Thread.Sleep(testClipsDelay);
+                    foreach (String testClip in testClips2)
+                    {
+                        queueClip(testClip, 0, null);
+                    }
+                }
+            }
+        }
+
+        public void setBackgroundSound(String backgroundSoundName)
+        {
+            backgroundToLoad = backgroundSoundName;
+            loadNewBackground = true;
+        }
+
         private void monitorQueue() {
             Console.WriteLine("Monitor starting");
+            backgroundPlayer = new MediaPlayer();
+            backgroundPlayer.MediaEnded += new EventHandler(backgroundPlayer_MediaEnded);
+            backgroundPlayer.Volume = volume;
+            setBackgroundSound(dtmPitWindowClosedBackground);
             while (true) { 
                 Thread.Sleep(1000);
                 long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
@@ -125,6 +202,14 @@ namespace CrewChief
                 List<String> keysToPlay = new List<String>();
                 lock (Lock)
                 {
+                    if (loadNewBackground && backgroundToLoad != null)
+                    {
+                        Console.WriteLine("Setting background sounds file to  " + backgroundToLoad);
+                        String path = Path.Combine(soundFilesPath, backgroundFilesPath, backgroundToLoad);
+                        backgroundPlayer.Open(new System.Uri(path, System.UriKind.Absolute));
+                        loadNewBackground = false;
+                    }
+                    
                     if (queuedClips.Count > 0)
                     {
                         Console.WriteLine("There are {0} queued events", queuedClips.Count);
@@ -134,7 +219,7 @@ namespace CrewChief
                         Console.WriteLine("Sound " + entry.Key + " is queued to play after " + entry.Value.dueTime + ". It is now " + milliseconds);
                         if (entry.Value.dueTime <= milliseconds)
                         {
-                            if (entry.Value.abstractEvent.isClipStillValid(entry.Key) && !keysToPlay.Contains(entry.Key))
+                            if ((entry.Value.abstractEvent == null || entry.Value.abstractEvent.isClipStillValid(entry.Key)) && !keysToPlay.Contains(entry.Key))
                             {
                                 keysToPlay.Add(entry.Key);
                             }
@@ -202,6 +287,7 @@ namespace CrewChief
         }
     
         private void playSounds(List<String> eventNames) {
+
             Boolean oneOrMoreEventsEnabled = false;
             foreach (String eventName in eventNames) {
                 if (enabledSounds.Contains(eventName))
@@ -211,13 +297,26 @@ namespace CrewChief
             }
             if (oneOrMoreEventsEnabled)
             {
-                SoundPlayer bleep = null;
-                if (enableBeep)
+                // this looks like we're doing it the wrong way round but there's a short
+                // delay playing the event sound, so if we kick off the background before
+                // the beep things sound a bit more natural
+                int backgroundDuration = 0;
+                int backgroundOffset = 0;
+                if (backgroundPlayer.NaturalDuration.HasTimeSpan)
                 {
-                    List<SoundPlayer> bleeps = clips["bleep"];
+                    backgroundDuration = (backgroundPlayer.NaturalDuration.TimeSpan.Minutes * 60) +
+                        backgroundPlayer.NaturalDuration.TimeSpan.Seconds;
+                    Console.WriteLine("Duration from file is " + backgroundDuration);
+                    backgroundOffset = random.Next(0, backgroundDuration - backgroundLeadout);
+                }
+                Console.WriteLine("Background offset = " + backgroundOffset);
+                backgroundPlayer.Position = TimeSpan.FromSeconds(backgroundOffset);
+                backgroundPlayer.Play();
+                if (enableStartBleep)
+                {
+                    List<SoundPlayer> bleeps = clips["start_bleep"];
                     int bleepIndex = random.Next(0, bleeps.Count);
-                    bleep = bleeps[bleepIndex];
-                    bleep.PlaySync();
+                    bleeps[bleepIndex].PlaySync();
                 }
                 foreach (String eventName in eventNames)
                 {
@@ -234,10 +333,13 @@ namespace CrewChief
                         Console.WriteLine("Event " + eventName + " is disabled");
                     }
                 }
-                if (enableBeep && bleep != null)
+                if (enableEndBleep)
                 {
-                    bleep.PlaySync();
+                    List<SoundPlayer> bleeps = clips["end_bleep"];
+                    int bleepIndex = random.Next(0, bleeps.Count);
+                    bleeps[bleepIndex].PlaySync();
                 }
+                backgroundPlayer.Stop();
             }
             else
             {
@@ -254,6 +356,12 @@ namespace CrewChief
             }
             clips[eventName].Add(clip);
             Console.WriteLine("cached clip " + file + " into set "+ eventName);
+        }
+
+        private void backgroundPlayer_MediaEnded(object sender, EventArgs e)
+        {
+            Console.WriteLine("looping...");
+            backgroundPlayer.Position = TimeSpan.FromMilliseconds(1);
         }
     }
 }
