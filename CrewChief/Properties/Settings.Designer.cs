@@ -43,7 +43,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0.5")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.4")]
         public float background_volume {
             get {
                 return ((float)(this["background_volume"]));
@@ -65,6 +65,24 @@ namespace CrewChief.Properties {
         public int update_interval {
             get {
                 return ((int)(this["update_interval"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("70")]
+        public float max_cold_tyre_temp {
+            get {
+                return ((float)(this["max_cold_tyre_temp"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public float max_good_tyre_temp {
+            get {
+                return ((float)(this["max_good_tyre_temp"]));
             }
         }
     }

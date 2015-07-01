@@ -47,7 +47,7 @@ namespace CrewChief
             Console.WriteLine("Looking for RRRE.exe...");
             AudioPlayer audioPlayer = new AudioPlayer();
             audioPlayer.initialise();
-
+            
             eventsList.Add(new LapCounter(audioPlayer));
             eventsList.Add(new LapTimes(audioPlayer));
             eventsList.Add(new Penalties(audioPlayer));
@@ -55,6 +55,7 @@ namespace CrewChief
             eventsList.Add(new Fuel(audioPlayer));
             eventsList.Add(new Position(audioPlayer));
             eventsList.Add(new RaceTime(audioPlayer));
+            eventsList.Add(new TyreTempMonitor(audioPlayer));
 
             while (true)
             {

@@ -17,9 +17,12 @@ The relative volume of the background sounds can be controlled by modifying the 
 
 The update frequency can also be set here using the update_interval property (in milliseconds). It's currently updating every 0.1 seconds.
 
+For version 1.2, the tyre temp thresholds are a bit of a guess. In DTM 2014, WTCC 2014 and M1 Procar racing I'm seeing temperatures in the 90s (i assume unit is Celsius) when driving normally. 100+ happens if I arse about doing doughnuts and stuff, so I set the 'hot' threshold to 100, but this might need some tuning. If you don't want tyre messages to trigger you can set hot and cold thresholds to something very high so the app always thinks the tyres are cold (there are no messages for cold tyres).
 
 Changes
 -------
+
+Version 1.2: Dropped background volume a bit; Added tyre temperature monitoring. This looks that the average tyre temp (across the tread) over the course of a lap. If a tyre's average temperature is above some threshold, an event is triggered ("Your left front is hot", "your rear tyres are hot" etc). It doesn't keep spamming this message - it only informs of changes (i.e. if the next lap your temps are back to normal you'll get a "tyre temps look good" message, or if they're all all you'll get a "all your tyres are hot").
 
 Version 1.1: Updated the update frequency to 10 times per second (this is now an user configurable property). Probably overkill but it might resolve some funkiness with race-finish messages (thanks to Georg for the bug report); 
 

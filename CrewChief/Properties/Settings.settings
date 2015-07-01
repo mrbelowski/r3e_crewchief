@@ -9,12 +9,18 @@
       <Value Profile="(Default)">background_sounds</Value>
     </Setting>
     <Setting Name="background_volume" Type="System.Single" Scope="Application">
-      <Value Profile="(Default)">0.5</Value>
+      <Value Profile="(Default)">0.4</Value>
     </Setting>
     <Setting Name="play_test_clips_on_startup" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="update_interval" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="max_cold_tyre_temp" Type="System.Single" Scope="Application">
+      <Value Profile="(Default)">70</Value>
+    </Setting>
+    <Setting Name="max_good_tyre_temp" Type="System.Single" Scope="Application">
       <Value Profile="(Default)">100</Value>
     </Setting>
   </Settings>
