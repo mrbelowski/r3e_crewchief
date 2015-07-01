@@ -18,7 +18,7 @@ namespace CrewChief
 
         private String backgroundFolderName = Properties.Settings.Default.background_sound_files_path;
 
-        private float volume = Properties.Settings.Default.background_volume;
+        private float backgroundVolume = Properties.Settings.Default.background_volume;
 
         private Random random = new Random();
     
@@ -84,7 +84,7 @@ namespace CrewChief
                                             System.Reflection.Assembly.GetEntryAssembly().Location), backgroundFolderName);
             }
             Console.WriteLine("Sound dir full path = " + soundFilesPath);
-            Console.WriteLine("Backgroun sound dir full path = " + backgroundFilesPath);
+            Console.WriteLine("Background sound dir full path = " + backgroundFilesPath);
             try
             {
                 DirectoryInfo soundDirectory = new DirectoryInfo(soundFilesPath);
@@ -191,10 +191,17 @@ namespace CrewChief
 
         private void monitorQueue() {
             Console.WriteLine("Monitor starting");
-            backgroundPlayer = new MediaPlayer();
-            backgroundPlayer.MediaEnded += new EventHandler(backgroundPlayer_MediaEnded);
-            backgroundPlayer.Volume = volume;
-            setBackgroundSound(dtmPitWindowClosedBackground);
+            if (backgroundVolume > 0)
+            {
+                backgroundPlayer = new MediaPlayer();
+                backgroundPlayer.MediaEnded += new EventHandler(backgroundPlayer_MediaEnded);
+                if (backgroundVolume > 1)
+                {
+                    backgroundVolume = 1;
+                }
+                backgroundPlayer.Volume = backgroundVolume;
+                setBackgroundSound(dtmPitWindowClosedBackground);
+            }
             while (true) { 
                 Thread.Sleep(1000);
                 long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
@@ -202,7 +209,7 @@ namespace CrewChief
                 List<String> keysToPlay = new List<String>();
                 lock (Lock)
                 {
-                    if (loadNewBackground && backgroundToLoad != null)
+                    if (backgroundVolume > 0 && loadNewBackground && backgroundToLoad != null)
                     {
                         Console.WriteLine("Setting background sounds file to  " + backgroundToLoad);
                         String path = Path.Combine(soundFilesPath, backgroundFilesPath, backgroundToLoad);
@@ -298,20 +305,23 @@ namespace CrewChief
             if (oneOrMoreEventsEnabled)
             {
                 // this looks like we're doing it the wrong way round but there's a short
-                // delay playing the event sound, so if we kick off the background before
-                // the beep things sound a bit more natural
-                int backgroundDuration = 0;
-                int backgroundOffset = 0;
-                if (backgroundPlayer.NaturalDuration.HasTimeSpan)
+                // delay playing the event sound, so if we kick off the background before the bleep
+                if (backgroundVolume > 0)
                 {
-                    backgroundDuration = (backgroundPlayer.NaturalDuration.TimeSpan.Minutes * 60) +
-                        backgroundPlayer.NaturalDuration.TimeSpan.Seconds;
-                    Console.WriteLine("Duration from file is " + backgroundDuration);
-                    backgroundOffset = random.Next(0, backgroundDuration - backgroundLeadout);
+                    int backgroundDuration = 0;
+                    int backgroundOffset = 0;
+                    if (backgroundPlayer.NaturalDuration.HasTimeSpan)
+                    {
+                        backgroundDuration = (backgroundPlayer.NaturalDuration.TimeSpan.Minutes * 60) +
+                            backgroundPlayer.NaturalDuration.TimeSpan.Seconds;
+                        Console.WriteLine("Duration from file is " + backgroundDuration);
+                        backgroundOffset = random.Next(0, backgroundDuration - backgroundLeadout);
+                    }
+                    Console.WriteLine("Background offset = " + backgroundOffset);
+                    backgroundPlayer.Position = TimeSpan.FromSeconds(backgroundOffset);
+                    backgroundPlayer.Play();
                 }
-                Console.WriteLine("Background offset = " + backgroundOffset);
-                backgroundPlayer.Position = TimeSpan.FromSeconds(backgroundOffset);
-                backgroundPlayer.Play();
+                
                 if (enableStartBleep)
                 {
                     List<SoundPlayer> bleeps = clips["start_bleep"];
@@ -339,7 +349,10 @@ namespace CrewChief
                     int bleepIndex = random.Next(0, bleeps.Count);
                     bleeps[bleepIndex].PlaySync();
                 }
-                backgroundPlayer.Stop();
+                if (backgroundVolume > 0)
+                {
+                    backgroundPlayer.Stop();
+                }   
             }
             else
             {

@@ -58,5 +58,14 @@ namespace CrewChief.Properties {
                 return ((bool)(this["play_test_clips_on_startup"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int update_interval {
+            get {
+                return ((int)(this["update_interval"]));
+            }
+        }
     }
 }

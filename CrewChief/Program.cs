@@ -22,7 +22,7 @@ namespace CrewChief
         private MemoryMappedFile _file;
         private MemoryMappedViewAccessor _view;
 
-        private readonly TimeSpan _timeInterval = TimeSpan.FromMilliseconds(2000);
+        private readonly TimeSpan _timeInterval = TimeSpan.FromMilliseconds(Properties.Settings.Default.update_interval);
 
         private List<AbstractEvent> eventsList = new List<AbstractEvent>();
 
