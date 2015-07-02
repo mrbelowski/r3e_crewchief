@@ -88,7 +88,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("72")]
+        [global::System.Configuration.DefaultSettingValueAttribute("73")]
         public float max_safe_oil_temp {
             get {
                 return ((float)(this["max_safe_oil_temp"]));
@@ -97,10 +97,19 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("70")]
+        [global::System.Configuration.DefaultSettingValueAttribute("69")]
         public float max_safe_water_temp {
             get {
                 return ((float)(this["max_safe_water_temp"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool log_temps {
+            get {
+                return ((bool)(this["log_temps"]));
             }
         }
     }

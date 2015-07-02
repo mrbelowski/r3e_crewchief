@@ -24,10 +24,13 @@
       <Value Profile="(Default)">100</Value>
     </Setting>
     <Setting Name="max_safe_oil_temp" Type="System.Single" Scope="Application">
-      <Value Profile="(Default)">72</Value>
+      <Value Profile="(Default)">73</Value>
     </Setting>
     <Setting Name="max_safe_water_temp" Type="System.Single" Scope="Application">
-      <Value Profile="(Default)">70</Value>
+      <Value Profile="(Default)">69</Value>
+    </Setting>
+    <Setting Name="log_temps" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>

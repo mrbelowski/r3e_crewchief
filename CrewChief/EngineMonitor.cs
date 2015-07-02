@@ -39,6 +39,7 @@ namespace CrewChief.Events
 
         private static float maxSafeWaterTemp = Properties.Settings.Default.max_safe_water_temp;
         private static float maxSafeOilTemp = Properties.Settings.Default.max_safe_oil_temp;
+        private static Boolean logTemps = Properties.Settings.Default.log_temps;
 
         double lastDataPointGameTime;
 
@@ -119,7 +120,10 @@ namespace CrewChief.Events
                     clearStateInternal();
                 }
                 engineData.addSample(currentState);
-                // Console.WriteLine(currentState.EngineWaterTemp + ", " + currentState.EngineOilTemp + ", " + currentState.EngineOilPressure);
+                if (logTemps)
+                {
+                    Console.WriteLine(currentState.EngineWaterTemp + ", " + currentState.EngineOilTemp + ", " + currentState.EngineOilPressure);
+                }
                 lastDataPointGameTime = currentState.Player.GameSimulationTime;
             }
         }
