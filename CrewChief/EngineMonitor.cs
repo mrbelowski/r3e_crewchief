@@ -74,6 +74,10 @@ namespace CrewChief.Events
         {
             if (currentState.Player.GameSimulationTime > lastDataPointGameTime)
             {
+                if (engineData == null)
+                {
+                    clearStateInternal();
+                }
                 if (currentState.Player.GameSimulationTime > gameTimeAtLastStatusCheck + statusMonitorWindowLength)
                 {
                     // we have 30 seconds of engine data, so check it and reset it

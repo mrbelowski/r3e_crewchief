@@ -82,7 +82,7 @@ namespace CrewChief.Events
                 {
                     if (currentState.LapTimePrevious > 0 && currentState.LapTimePrevious <= currentState.LapTimeBest)
                     {
-                        audioPlayer.queueClip(folderBestLap, 0, this);
+                        audioPlayer.queueClip(folderBestLap, 0, this, PearlsOfWisdom.PearlType.GOOD, 0.5);
                     }
                     else if (currentState.CompletedLaps >= lastConsistencyUpdate + lapTimesWindowSize)
                     {
@@ -100,7 +100,7 @@ namespace CrewChief.Events
                         if (consistency == ConsistencyResult.WORSENING)
                         {
                             lastConsistencyUpdate = currentState.CompletedLaps;
-                            audioPlayer.queueClip(folderWorseningTimes, 0, this);
+                            audioPlayer.queueClip(folderWorseningTimes, 0, this, PearlsOfWisdom.PearlType.BAD, 0.5);
                         }
                     }
                     else if (currentState.LapTimePrevious - (currentState.LapTimePrevious * goodLapPercent / 100) < currentState.LapTimeBest)

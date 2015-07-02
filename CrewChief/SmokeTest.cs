@@ -26,7 +26,7 @@ namespace CrewChief.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            audioPlayer.queueClip(folderTest, 0, this);
+            audioPlayer.queueClip(folderTest, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, 1);
         }
     }
 }

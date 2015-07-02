@@ -32,6 +32,10 @@ namespace CrewChief.Events
 
         private Boolean eventHasFiredInThisSession;
 
+        private Boolean playedMessageForOutsideTop10;
+
+        private int startPosition;
+
         public Position(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -41,6 +45,8 @@ namespace CrewChief.Events
         {
             previousPosition = 0;
             eventHasFiredInThisSession = false;
+            playedMessageForOutsideTop10 = false;
+            startPosition = 0;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -50,44 +56,74 @@ namespace CrewChief.Events
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
         {
+            if (startPosition == 0 && currentState.Position > 0)
+            {
+                startPosition = currentState.Position;
+            }
             if (isNewLap) {
                 if (previousPosition == 0 && currentState.Position > 0) {
                     previousPosition = currentState.Position;
                 } else {
                     if (!eventHasFiredInThisSession || previousPosition != currentState.Position) {
+                        PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.BAD;
+                        Boolean isImproving = false;
+                        if (previousPosition > currentState.Position)
+                        {
+                            pearlType = PearlsOfWisdom.PearlType.GOOD;
+                            isImproving = true;
+                        }
                         eventHasFiredInThisSession = currentState.Position <= 10;
                         Console.WriteLine("Position event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);
+                        Boolean p10orBetter = true;
+                        
                         switch (currentState.Position) {
                             case 1 :
-                                audioPlayer.queueClip(folderP1, 0, this);
+                                audioPlayer.queueClip(folderP1, 0, this, pearlType, 0.5);
                                 break;
                             case 2 :
-                                audioPlayer.queueClip(folderP2, 0, this);
+                                audioPlayer.queueClip(folderP2, 0, this, pearlType, 0.5);
                                 break;
                             case 3 :
-                                audioPlayer.queueClip(folderP3, 0, this);
+                                audioPlayer.queueClip(folderP3, 0, this, pearlType, 0.5);
                                 break;
                             case 4 :
-                                audioPlayer.queueClip(folderP4, 0, this);
+                                audioPlayer.queueClip(folderP4, 0, this, pearlType, 0.5);
                                 break;
                             case 5 :
-                                audioPlayer.queueClip(folderP5, 0, this);
+                                audioPlayer.queueClip(folderP5, 0, this, pearlType, 0.5);
                                 break;
                             case 6 :
-                                audioPlayer.queueClip(folderP6, 0, this);
+                                audioPlayer.queueClip(folderP6, 0, this, pearlType, 0.5);
                                 break;
                             case 7 :
-                                audioPlayer.queueClip(folderP7, 0, this);
+                                audioPlayer.queueClip(folderP7, 0, this, pearlType, 0.5);
                                 break;
                             case 8 :
-                                audioPlayer.queueClip(folderP8, 0, this);
+                                audioPlayer.queueClip(folderP8, 0, this, pearlType, 0.5);
                                 break;
                             case 9 :
-                                audioPlayer.queueClip(folderP9, 0, this);
+                                audioPlayer.queueClip(folderP9, 0, this, pearlType, 0.5);
                                 break;
                             case 10 :
-                                audioPlayer.queueClip(folderP10, 0, this);
-                                break;                            
+                                audioPlayer.queueClip(folderP10, 0, this, pearlType, 0.5);
+                                break;    
+                            default :
+                                p10orBetter = false;
+                                break;
+                        }
+                        if (!p10orBetter && !playedMessageForOutsideTop10 && PearlsOfWisdom.enablePearlsOfWisdom)
+                        {
+                            if (startPosition > currentState.Position + 5)
+                            {
+                                // has made up 5 places, so even though we're outside the top ten give some encouragement
+                                audioPlayer.queueClip(PearlsOfWisdom.folderKeepItUp, 0, this);
+                                playedMessageForOutsideTop10 = true;
+                            }
+                            else
+                            {
+                                audioPlayer.queueClip(PearlsOfWisdom.folderMustDoBetter, 0, this);
+                                playedMessageForOutsideTop10 = true;
+                            }
                         }
                         previousPosition = currentState.Position;
                     }

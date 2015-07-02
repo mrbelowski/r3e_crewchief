@@ -16,6 +16,8 @@ namespace CrewChief.Events
 
         protected Boolean isNew;
 
+        protected PearlsOfWisdom pearlsOfWisdom;
+
         // this is called on each 'tick' (currently every 2 seconds) - the event subtype should
         // place its logic in here including calls to audioPlayer.queueClip
         abstract protected void triggerInternal(Shared lastState, Shared currentState);
@@ -32,6 +34,11 @@ namespace CrewChief.Events
         {
             isNew = true;
             clearStateInternal();
+        }
+
+        public void setPearlsOfWisdom(PearlsOfWisdom pearlsOfWisdom)
+        {
+            this.pearlsOfWisdom = pearlsOfWisdom;
         }
 
         public void trigger(Shared lastState, Shared currentState) 

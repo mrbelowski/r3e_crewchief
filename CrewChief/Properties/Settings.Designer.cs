@@ -112,5 +112,14 @@ namespace CrewChief.Properties {
                 return ((bool)(this["log_temps"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enable_pearls_of_wisdom {
+            get {
+                return ((bool)(this["enable_pearls_of_wisdom"]));
+            }
+        }
     }
 }

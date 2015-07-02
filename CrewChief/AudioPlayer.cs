@@ -57,6 +57,8 @@ namespace CrewChief
 
         private String[] testClips2 = { "fuel/half_distance_low_fuel", "race_time/twenty_five_minutes"};
 
+        private PearlsOfWisdom pearlsOfWisdom;
+
         class QueueObject
         {
             public long dueTime;
@@ -85,6 +87,7 @@ namespace CrewChief
             }
             Console.WriteLine("Sound dir full path = " + soundFilesPath);
             Console.WriteLine("Background sound dir full path = " + backgroundFilesPath);
+            pearlsOfWisdom = new PearlsOfWisdom();
             try
             {
                 DirectoryInfo soundDirectory = new DirectoryInfo(soundFilesPath);
@@ -161,7 +164,7 @@ namespace CrewChief
 
         private void playTestClips()
         {
-            queueClip("smoke_test/test", 0, null);
+            new SmokeTest(this).trigger(new Data.Shared(), new Data.Shared());
             // now queue some tests...
             if (Properties.Settings.Default.play_test_clips_on_startup)
             {
@@ -260,12 +263,19 @@ namespace CrewChief
                 }
             }
         }
+
+        public void queueClip(String eventName, int secondsDelay, AbstractEvent abstractEvent)
+        {
+            queueClip(eventName, secondsDelay, abstractEvent, PearlsOfWisdom.PearlType.NONE, 0);
+        }
+
     
         // we pass in the event which triggered this clip so that we can query the event before playing the
         // clip to check if it's still valid against the latest game state. This is necessary for clips queued
         // with non-zero delays (e.g. you might have crossed the start / finish line between the clip being 
         // queued and it being played)
-        public void queueClip(String eventName, int secondsDelay, AbstractEvent abstractEvent) {
+        public void queueClip(String eventName, int secondsDelay, AbstractEvent abstractEvent, 
+            PearlsOfWisdom.PearlType pearlType, double pearlMessageProbability) {
             lock (Lock)
             {
                 if (queuedClips.ContainsKey(eventName))
@@ -277,7 +287,22 @@ namespace CrewChief
                 {
                     Console.WriteLine("Queuing clip for event " + eventName);
                     long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                    PearlsOfWisdom.PearlMessagePosition pearlPosition = PearlsOfWisdom.PearlMessagePosition.NONE;
+                    if (pearlType != PearlsOfWisdom.PearlType.NONE && !pearlOfWisdomAlreadyQueued())
+                    {
+                        pearlPosition = pearlsOfWisdom.getMessagePosition(pearlMessageProbability);
+                    }
+                    if (pearlPosition == PearlsOfWisdom.PearlMessagePosition.BEFORE)
+                    {
+                        queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType),
+                            new QueueObject(milliseconds + (secondsDelay * 1000), abstractEvent));
+                    }
                     queuedClips.Add(eventName, new QueueObject(milliseconds + (secondsDelay * 1000), abstractEvent));
+                    if (pearlPosition == PearlsOfWisdom.PearlMessagePosition.AFTER)
+                    {
+                        queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType),
+                            new QueueObject(milliseconds + (secondsDelay * 1000), abstractEvent));
+                    }
                 }
             }
         }
@@ -375,6 +400,22 @@ namespace CrewChief
         {
             Console.WriteLine("looping...");
             backgroundPlayer.Position = TimeSpan.FromMilliseconds(1);
+        }
+
+        private Boolean pearlOfWisdomAlreadyQueued()
+        {
+            if (queuedClips != null && queuedClips.Count > 0)
+            {
+                foreach (PearlsOfWisdom.PearlType pearlType in Enum.GetValues(typeof(PearlsOfWisdom.PearlType)))
+                {
+                    if (queuedClips.ContainsKey(PearlsOfWisdom.getMessageFolder(pearlType)))
+                    {
+                        Console.WriteLine("Pearl of wisdom is already queued, skipping");
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }
