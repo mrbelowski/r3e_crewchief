@@ -314,10 +314,10 @@ namespace CrewChief
                     {
                         backgroundDuration = (backgroundPlayer.NaturalDuration.TimeSpan.Minutes * 60) +
                             backgroundPlayer.NaturalDuration.TimeSpan.Seconds;
-                        Console.WriteLine("Duration from file is " + backgroundDuration);
+                        //Console.WriteLine("Duration from file is " + backgroundDuration);
                         backgroundOffset = random.Next(0, backgroundDuration - backgroundLeadout);
                     }
-                    Console.WriteLine("Background offset = " + backgroundOffset);
+                    //Console.WriteLine("Background offset = " + backgroundOffset);
                     backgroundPlayer.Position = TimeSpan.FromSeconds(backgroundOffset);
                     backgroundPlayer.Play();
                 }

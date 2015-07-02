@@ -56,6 +56,7 @@ namespace CrewChief
             eventsList.Add(new Position(audioPlayer));
             eventsList.Add(new RaceTime(audioPlayer));
             eventsList.Add(new TyreTempMonitor(audioPlayer));
+            eventsList.Add(new EngineMonitor(audioPlayer));
 
             while (true)
             {

@@ -53,7 +53,7 @@ namespace CrewChief.Events
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             if (isNewLap)
-            {
+            {                
                 if (currentState.CompletedLaps > 1)
                 {
                     if (lastLapTyreTemps == null)
@@ -109,11 +109,15 @@ namespace CrewChief.Events
                 lastLapTyreTemps = thisLapTyreTemps;
                 thisLapTyreTemps = new TyreTemps();
             }
-
+            if (thisLapTyreTemps == null)
+            {
+                Console.WriteLine("resetting tyre temps data");
+                clearStateInternal();
+            }
             updateTyreTemps(currentState, thisLapTyreTemps);
         }
 
-        private void updateTyreTemps(Shared data, TyreTemps tyreTemps) {
+        private void updateTyreTemps(Shared data, TyreTemps tyreTemps) {            
             tyreTemps.addSample((data.TireTemp.FrontLeft_Left + data.TireTemp.FrontLeft_Center + data.TireTemp.FrontLeft_Right) / 3,
                 (data.TireTemp.FrontRight_Left + data.TireTemp.FrontRight_Center + data.TireTemp.FrontRight_Right) / 3,
                 (data.TireTemp.RearLeft_Left + data.TireTemp.RearLeft_Center + data.TireTemp.RearLeft_Right) / 3,

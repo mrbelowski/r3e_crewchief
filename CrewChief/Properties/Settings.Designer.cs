@@ -85,5 +85,23 @@ namespace CrewChief.Properties {
                 return ((float)(this["max_good_tyre_temp"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("72")]
+        public float max_safe_oil_temp {
+            get {
+                return ((float)(this["max_safe_oil_temp"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("70")]
+        public float max_safe_water_temp {
+            get {
+                return ((float)(this["max_safe_water_temp"]));
+            }
+        }
     }
 }
