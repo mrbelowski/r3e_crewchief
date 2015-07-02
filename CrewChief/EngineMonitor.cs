@@ -119,7 +119,7 @@ namespace CrewChief.Events
                     clearStateInternal();
                 }
                 engineData.addSample(currentState);
-                Console.WriteLine(currentState.EngineWaterTemp + ", " + currentState.EngineOilTemp + ", " + currentState.EngineOilPressure);
+                // Console.WriteLine(currentState.EngineWaterTemp + ", " + currentState.EngineOilTemp + ", " + currentState.EngineOilPressure);
                 lastDataPointGameTime = currentState.Player.GameSimulationTime;
             }
         }
