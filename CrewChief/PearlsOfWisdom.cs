@@ -27,9 +27,10 @@ namespace CrewChief
 
         public PearlMessagePosition getMessagePosition(double messageProbability)
         {
-            if (enablePearlsOfWisdom && messageProbability > random.NextDouble())
+            double ran = random.NextDouble();
+            if (enablePearlsOfWisdom && messageProbability > ran)
             {
-                if (random.Next(0, 1) > 0.5)
+                if (ran < 0.5)
                 {
                     return PearlMessagePosition.BEFORE;
                 }
@@ -38,6 +39,8 @@ namespace CrewChief
                     return PearlMessagePosition.AFTER;
                 }
             }
+            Console.WriteLine("Not playing message, enabled = " + enablePearlsOfWisdom + " probability = " + messageProbability
+                + " rand = " + ran);
             return PearlMessagePosition.NONE;
         }
 

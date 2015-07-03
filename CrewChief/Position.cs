@@ -88,16 +88,16 @@ namespace CrewChief.Events
                         
                         switch (currentState.Position) {
                             case 1 :
-                                audioPlayer.queueClip(folderP1, 0, this, pearlType, 0.5);
+                                audioPlayer.queueClip(folderP1, 0, this, pearlType, 0.7);
                                 break;
                             case 2 :
-                                audioPlayer.queueClip(folderP2, 0, this, pearlType, 0.3);
+                                audioPlayer.queueClip(folderP2, 0, this, pearlType, 0.6);
                                 break;
                             case 3 :
-                                audioPlayer.queueClip(folderP3, 0, this, pearlType, 0.3);
+                                audioPlayer.queueClip(folderP3, 0, this, pearlType, 0.5);
                                 break;
                             case 4 :
-                                audioPlayer.queueClip(folderP4, 0, this, pearlType, 0.3);
+                                audioPlayer.queueClip(folderP4, 0, this, pearlType, 0.4);
                                 break;
                             case 5 :
                                 audioPlayer.queueClip(folderP5, 0, this, pearlType, 0.3);
@@ -109,13 +109,13 @@ namespace CrewChief.Events
                                 audioPlayer.queueClip(folderP7, 0, this, pearlType, 0.3);
                                 break;
                             case 8 :
-                                audioPlayer.queueClip(folderP8, 0, this, pearlType, 0.3);
+                                audioPlayer.queueClip(folderP8, 0, this, pearlType, 0.4);
                                 break;
                             case 9 :
-                                audioPlayer.queueClip(folderP9, 0, this, pearlType, 0.3);
+                                audioPlayer.queueClip(folderP9, 0, this, pearlType, 0.5);
                                 break;
                             case 10 :
-                                audioPlayer.queueClip(folderP10, 0, this, pearlType, 0.3);
+                                audioPlayer.queueClip(folderP10, 0, this, pearlType, 0.6);
                                 break;    
                             default :
                                 p10orBetter = false;
