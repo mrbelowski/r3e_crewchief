@@ -325,10 +325,12 @@ namespace CrewChief
         private void playSounds(List<String> eventNames) {
             if (eventNames.Count == 1 && clipIsPearlOfWisdom(eventNames[0]) && hasPearlJustBeenPlayed())
             {
-                return;
+                Console.WriteLine("Rejecting pearl of wisdom " + eventNames[0] + 
+                    " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds"); return;
             }
             Boolean oneOrMoreEventsEnabled = false;
-            foreach (String eventName in eventNames) {
+            foreach (String eventName in eventNames) 
+            {
                 if (enabledSounds.Contains(eventName))
                 {
                     oneOrMoreEventsEnabled = true;
@@ -362,20 +364,21 @@ namespace CrewChief
                 }
                 foreach (String eventName in eventNames)
                 {
-                    if (clipIsPearlOfWisdom(eventName))
-                    {
-                        if (hasPearlJustBeenPlayed()) {
-                            Console.WriteLine("Rejecting pearl of wisdom " + eventName +
-                                " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds");
-                            continue;
-                        }
-                        else
-                        {
-                            timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
-                        }            
-                    }
                     if (enabledSounds.Contains(eventName))
                     {
+                        if (clipIsPearlOfWisdom(eventName))
+                        {
+                            if (hasPearlJustBeenPlayed())
+                            {
+                                Console.WriteLine("Rejecting pearl of wisdom " + eventName +
+                                    " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds");
+                                continue;
+                            }
+                            else
+                            {
+                                timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
+                            }
+                        }
                         List<SoundPlayer> clipsList = clips[eventName];
                         int index = random.Next(0, clipsList.Count);
                         SoundPlayer clip = clipsList[index];
