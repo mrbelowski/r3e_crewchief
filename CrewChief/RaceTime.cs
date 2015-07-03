@@ -60,64 +60,130 @@ namespace CrewChief.Events
                     pearlType = PearlsOfWisdom.PearlType.BAD;
                 }
 
-                if (!played5mins && gameTimeMinutes > 5)
+                if (!played5mins && gameTimeMinutes > 5 && gameTimeMinutes <= 10)
                 {
                     played5mins = true;
                     audioPlayer.queueClip(folder5mins, 0, this, pearlType, 0.7);
                 }
-                else if (!played10mins && gameTimeMinutes > 10)
+                else if (!played10mins && gameTimeMinutes > 10 && gameTimeMinutes <= 15)
                 {
                     played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder10mins, 0, this, pearlType, 0.7);
                 }
-                else if (!played15mins && gameTimeMinutes > 15)
+                else if (!played15mins && gameTimeMinutes > 15 && gameTimeMinutes <= 20)
                 {
                     played15mins = true;
+                    played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder15mins, 0, this, pearlType, 0.7);
                 }
-                else if (!played20mins && gameTimeMinutes > 20)
+                else if (!played20mins && gameTimeMinutes > 20 && gameTimeMinutes <= 25)
                 {
                     played20mins = true;
+                    played15mins = true;
+                    played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder20mins, 0, this, pearlType, 0.7);
                 }
-                else if (!played25mins && gameTimeMinutes > 25)
+                else if (!played25mins && gameTimeMinutes > 25 && gameTimeMinutes <= 30)
                 {
                     played25mins = true;
+                    played20mins = true;
+                    played15mins = true;
+                    played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder25mins, 0, this, pearlType, 0.7);
                 }
-                else if (!played30mins && gameTimeMinutes > 30)
+                else if (!played30mins && gameTimeMinutes > 30 && gameTimeMinutes <= 35)
                 {
                     played30mins = true;
+                    played25mins = true;
+                    played20mins = true;
+                    played15mins = true;
+                    played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder30mins, 0, this, pearlType, 0.7);
                 }
-                else if (!played35mins && gameTimeMinutes > 35)
+                else if (!played35mins && gameTimeMinutes > 35 && gameTimeMinutes <= 40)
                 {
                     played35mins = true;
+                    played30mins = true;
+                    played25mins = true;
+                    played20mins = true;
+                    played15mins = true;
+                    played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder35mins, 0, this, pearlType, 0.7);
                 }
-                else if (!played40mins && gameTimeMinutes > 40)
+                else if (!played40mins && gameTimeMinutes > 40 && gameTimeMinutes <= 45)
                 {
                     played40mins = true;
+                    played35mins = true;
+                    played30mins = true;
+                    played25mins = true;
+                    played20mins = true;
+                    played15mins = true;
+                    played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder40mins, 0, this, pearlType, 0.7);
                 }
-                else if (!played45mins && gameTimeMinutes > 45)
+                else if (!played45mins && gameTimeMinutes > 45 && gameTimeMinutes <= 50)
                 {
                     played45mins = true;
+                    played40mins = true;
+                    played35mins = true;
+                    played30mins = true;
+                    played25mins = true;
+                    played20mins = true;
+                    played15mins = true;
+                    played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder45mins, 0, this, pearlType, 0.7);
                 }
-                else if (!played50mins && gameTimeMinutes > 50)
+                else if (!played50mins && gameTimeMinutes > 50 && gameTimeMinutes <= 55)
                 {
                     played50mins = true;
+                    played45mins = true;
+                    played40mins = true;
+                    played35mins = true;
+                    played30mins = true;
+                    played25mins = true;
+                    played20mins = true;
+                    played15mins = true;
+                    played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder50mins, 0, this, pearlType, 0.7);
                 }
-                else if (!played55mins && gameTimeMinutes > 55)
+                else if (!played55mins && gameTimeMinutes > 55 && gameTimeMinutes <= 60)
                 {
                     played55mins = true;
+                    played50mins = true;
+                    played45mins = true;
+                    played40mins = true;
+                    played35mins = true;
+                    played30mins = true;
+                    played25mins = true;
+                    played20mins = true;
+                    played15mins = true;
+                    played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder55mins, 0, this, pearlType, 0.5);
                 }
                 else if (!played60mins && gameTimeMinutes > 60)
                 {
                     played60mins = true;
+                    played55mins = true;
+                    played50mins = true;
+                    played45mins = true;
+                    played40mins = true;
+                    played35mins = true;
+                    played30mins = true;
+                    played25mins = true;
+                    played20mins = true;
+                    played15mins = true;
+                    played10mins = true;
+                    played5mins = true;
                     audioPlayer.queueClip(folder60mins, 0, this, pearlType, 0.5);
                 }
             }

@@ -47,8 +47,8 @@ namespace CrewChief.Events
 
         EngineData engineData;
 
-        // record engine data for 30 seconds then report changes
-        double statusMonitorWindowLength = 30;
+        // record engine data for 60 seconds then report changes
+        double statusMonitorWindowLength = 60;
 
         double gameTimeAtLastStatusCheck;
 

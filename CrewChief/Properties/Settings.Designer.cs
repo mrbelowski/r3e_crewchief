@@ -88,7 +88,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("73")]
+        [global::System.Configuration.DefaultSettingValueAttribute("76")]
         public float max_safe_oil_temp {
             get {
                 return ((float)(this["max_safe_oil_temp"]));
@@ -97,7 +97,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("69")]
+        [global::System.Configuration.DefaultSettingValueAttribute("72")]
         public float max_safe_water_temp {
             get {
                 return ((float)(this["max_safe_water_temp"]));
@@ -133,7 +133,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.8")]
         public float pearls_of_wisdom_likelihood {
             get {
                 return ((float)(this["pearls_of_wisdom_likelihood"]));
