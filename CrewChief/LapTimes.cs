@@ -82,7 +82,7 @@ namespace CrewChief.Events
                 {
                     if (currentState.LapTimePrevious > 0 && currentState.LapTimePrevious <= currentState.LapTimeBest)
                     {
-                        audioPlayer.queueClip(folderBestLap, 0, this, PearlsOfWisdom.PearlType.GOOD, 0.5);
+                        audioPlayer.queueClip(folderBestLap, 0, this, PearlsOfWisdom.PearlType.GOOD, 0.2);
                     }
                     else if (currentState.CompletedLaps >= lastConsistencyUpdate + lapTimesWindowSize)
                     {

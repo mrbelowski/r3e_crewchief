@@ -20,6 +20,8 @@ namespace CrewChief
 
         private float backgroundVolume = Properties.Settings.Default.background_volume;
 
+        private readonly TimeSpan minTimeBetweenPearlsOfWisdom = TimeSpan.FromSeconds(Properties.Settings.Default.minimum_time_between_pearls_of_wisdom);
+
         private Random random = new Random();
     
         private Dictionary<String, QueueObject> queuedClips = new Dictionary<String, QueueObject>();
@@ -58,6 +60,8 @@ namespace CrewChief
         private String[] testClips2 = { "fuel/half_distance_low_fuel", "race_time/twenty_five_minutes"};
 
         private PearlsOfWisdom pearlsOfWisdom;
+
+        DateTime timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
 
         class QueueObject
         {
@@ -319,7 +323,10 @@ namespace CrewChief
         }
     
         private void playSounds(List<String> eventNames) {
-
+            if (eventNames.Count == 1 && clipIsPearlOfWisdom(eventNames[0]) && hasPearlJustBeenPlayed())
+            {
+                return;
+            }
             Boolean oneOrMoreEventsEnabled = false;
             foreach (String eventName in eventNames) {
                 if (enabledSounds.Contains(eventName))
@@ -355,6 +362,18 @@ namespace CrewChief
                 }
                 foreach (String eventName in eventNames)
                 {
+                    if (clipIsPearlOfWisdom(eventName))
+                    {
+                        if (hasPearlJustBeenPlayed()) {
+                            Console.WriteLine("Rejecting pearl of wisdom " + eventName +
+                                " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds");
+                            continue;
+                        }
+                        else
+                        {
+                            timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
+                        }            
+                    }
                     if (enabledSounds.Contains(eventName))
                     {
                         List<SoundPlayer> clipsList = clips[eventName];
@@ -408,7 +427,8 @@ namespace CrewChief
             {
                 foreach (PearlsOfWisdom.PearlType pearlType in Enum.GetValues(typeof(PearlsOfWisdom.PearlType)))
                 {
-                    if (queuedClips.ContainsKey(PearlsOfWisdom.getMessageFolder(pearlType)))
+                    if (pearlType != PearlsOfWisdom.PearlType.NONE && 
+                        queuedClips.ContainsKey(PearlsOfWisdom.getMessageFolder(pearlType)))
                     {
                         Console.WriteLine("Pearl of wisdom is already queued, skipping");
                         return true;
@@ -416,6 +436,23 @@ namespace CrewChief
                 }
             }
             return false;
+        }
+
+        private Boolean clipIsPearlOfWisdom(String eventName)
+        {
+            foreach (PearlsOfWisdom.PearlType pearlType in Enum.GetValues(typeof(PearlsOfWisdom.PearlType)))
+            {
+                if (pearlType != PearlsOfWisdom.PearlType.NONE && PearlsOfWisdom.getMessageFolder(pearlType) == eventName)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private Boolean hasPearlJustBeenPlayed()
+        {
+            return timeLastPearlOfWisdomPlayed.Add(minTimeBetweenPearlsOfWisdom) > DateTime.UtcNow;
         }
     }
 }

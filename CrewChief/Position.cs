@@ -66,11 +66,21 @@ namespace CrewChief.Events
                 } else {
                     if (!eventHasFiredInThisSession || previousPosition != currentState.Position) {
                         PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.BAD;
-                        Boolean isImproving = false;
-                        if (previousPosition > currentState.Position)
+                        if (previousPosition > currentState.Position && currentState.Position <= 5)
                         {
                             pearlType = PearlsOfWisdom.PearlType.GOOD;
-                            isImproving = true;
+                        }
+                        else if (previousPosition > currentState.Position && currentState.Position > 5)
+                        {
+                            pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
+                        }
+                        else if (previousPosition < currentState.Position && currentState.Position > 5)
+                        {
+                            pearlType = PearlsOfWisdom.PearlType.BAD;
+                        }
+                        else
+                        {
+                            pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
                         }
                         eventHasFiredInThisSession = currentState.Position <= 10;
                         Console.WriteLine("Position event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);
@@ -81,31 +91,31 @@ namespace CrewChief.Events
                                 audioPlayer.queueClip(folderP1, 0, this, pearlType, 0.5);
                                 break;
                             case 2 :
-                                audioPlayer.queueClip(folderP2, 0, this, pearlType, 0.5);
+                                audioPlayer.queueClip(folderP2, 0, this, pearlType, 0.3);
                                 break;
                             case 3 :
-                                audioPlayer.queueClip(folderP3, 0, this, pearlType, 0.5);
+                                audioPlayer.queueClip(folderP3, 0, this, pearlType, 0.3);
                                 break;
                             case 4 :
-                                audioPlayer.queueClip(folderP4, 0, this, pearlType, 0.5);
+                                audioPlayer.queueClip(folderP4, 0, this, pearlType, 0.3);
                                 break;
                             case 5 :
-                                audioPlayer.queueClip(folderP5, 0, this, pearlType, 0.5);
+                                audioPlayer.queueClip(folderP5, 0, this, pearlType, 0.3);
                                 break;
                             case 6 :
-                                audioPlayer.queueClip(folderP6, 0, this, pearlType, 0.5);
+                                audioPlayer.queueClip(folderP6, 0, this, pearlType, 0.3);
                                 break;
                             case 7 :
-                                audioPlayer.queueClip(folderP7, 0, this, pearlType, 0.5);
+                                audioPlayer.queueClip(folderP7, 0, this, pearlType, 0.3);
                                 break;
                             case 8 :
-                                audioPlayer.queueClip(folderP8, 0, this, pearlType, 0.5);
+                                audioPlayer.queueClip(folderP8, 0, this, pearlType, 0.3);
                                 break;
                             case 9 :
-                                audioPlayer.queueClip(folderP9, 0, this, pearlType, 0.5);
+                                audioPlayer.queueClip(folderP9, 0, this, pearlType, 0.3);
                                 break;
                             case 10 :
-                                audioPlayer.queueClip(folderP10, 0, this, pearlType, 0.5);
+                                audioPlayer.queueClip(folderP10, 0, this, pearlType, 0.3);
                                 break;    
                             default :
                                 p10orBetter = false;
@@ -117,6 +127,11 @@ namespace CrewChief.Events
                             {
                                 // has made up 5 places, so even though we're outside the top ten give some encouragement
                                 audioPlayer.queueClip(PearlsOfWisdom.folderKeepItUp, 0, this);
+                                playedMessageForOutsideTop10 = true;
+                            }
+                            else if (startPosition > currentState.Position)
+                            {
+                                audioPlayer.queueClip(PearlsOfWisdom.folderNeutral, 0, this);
                                 playedMessageForOutsideTop10 = true;
                             }
                             else

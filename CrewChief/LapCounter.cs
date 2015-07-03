@@ -80,6 +80,10 @@ namespace CrewChief.Events
                     }
                     else if (currentState.Position >= 4)
                     {
+                        audioPlayer.queueClip(folderLastLap, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, 0.5);
+                    }
+                    else if (currentState.Position >= 10)
+                    {
                         audioPlayer.queueClip(folderLastLap, 0, this, PearlsOfWisdom.PearlType.BAD, 0.5);
                     }
                     else
@@ -95,6 +99,10 @@ namespace CrewChief.Events
                         audioPlayer.queueClip(folderTwoLeftTopThree, 0, this);
                     }
                     else if (currentState.Position >= 4)
+                    {
+                        audioPlayer.queueClip(folderTwoLeft, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, 0.5);
+                    }
+                    else if (currentState.Position >= 10)
                     {
                         audioPlayer.queueClip(folderTwoLeft, 0, this, PearlsOfWisdom.PearlType.BAD, 0.5);
                     }
