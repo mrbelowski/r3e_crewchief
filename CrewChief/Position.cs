@@ -30,11 +30,9 @@ namespace CrewChief.Events
 
         private int previousPosition;
 
-        private Boolean eventHasFiredInThisSession;
+        private Boolean playedFirstMessage;
 
-        private Boolean playedMessageForOutsideTop10;
-
-        private int startPosition;
+        private int positionAtLastP10OrWorseMessage;
 
         public Position(AudioPlayer audioPlayer)
         {
@@ -44,9 +42,8 @@ namespace CrewChief.Events
         protected override void clearStateInternal()
         {
             previousPosition = 0;
-            eventHasFiredInThisSession = false;
-            playedMessageForOutsideTop10 = false;
-            startPosition = 0;
+            playedFirstMessage = false;
+            positionAtLastP10OrWorseMessage = 0;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -56,23 +53,20 @@ namespace CrewChief.Events
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
         {
-            if (startPosition == 0 && currentState.Position > 0)
+            if (previousPosition == 0 && currentState.Position > 0)
             {
-                startPosition = currentState.Position;
+                previousPosition = currentState.Position;
+                positionAtLastP10OrWorseMessage = currentState.Position;
             }
             if (isNewLap) {
                 if (previousPosition == 0 && currentState.Position > 0) {
                     previousPosition = currentState.Position;
                 } else {
-                    if (!eventHasFiredInThisSession || previousPosition != currentState.Position) {
+                    if (!playedFirstMessage || previousPosition != currentState.Position) {
                         PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.BAD;
-                        if (previousPosition > currentState.Position && currentState.Position <= 5)
+                        if (previousPosition > currentState.Position + 5 || (previousPosition > currentState.Position && currentState.Position <= 5))
                         {
                             pearlType = PearlsOfWisdom.PearlType.GOOD;
-                        }
-                        else if (previousPosition > currentState.Position && currentState.Position > 5)
-                        {
-                            pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
                         }
                         else if (previousPosition < currentState.Position && currentState.Position > 5)
                         {
@@ -82,65 +76,69 @@ namespace CrewChief.Events
                         {
                             pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
                         }
-                        eventHasFiredInThisSession = currentState.Position <= 10;
                         Console.WriteLine("Position event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);
                         Boolean p10orBetter = true;
                         
                         switch (currentState.Position) {
                             case 1 :
-                                audioPlayer.queueClip(folderP1, 0, this, pearlType, 0.7);
+                                audioPlayer.queueClip(folderP1, 0, this, pearlType, 0.8);
                                 break;
                             case 2 :
-                                audioPlayer.queueClip(folderP2, 0, this, pearlType, 0.6);
+                                audioPlayer.queueClip(folderP2, 0, this, pearlType, 0.7);
                                 break;
                             case 3 :
                                 audioPlayer.queueClip(folderP3, 0, this, pearlType, 0.5);
                                 break;
                             case 4 :
-                                audioPlayer.queueClip(folderP4, 0, this, pearlType, 0.4);
+                                audioPlayer.queueClip(folderP4, 0, this, pearlType, 0.5);
                                 break;
                             case 5 :
-                                audioPlayer.queueClip(folderP5, 0, this, pearlType, 0.3);
+                                audioPlayer.queueClip(folderP5, 0, this, pearlType, 0.5);
                                 break;
                             case 6 :
-                                audioPlayer.queueClip(folderP6, 0, this, pearlType, 0.3);
+                                audioPlayer.queueClip(folderP6, 0, this, pearlType, 0.5);
                                 break;
                             case 7 :
-                                audioPlayer.queueClip(folderP7, 0, this, pearlType, 0.3);
+                                audioPlayer.queueClip(folderP7, 0, this, pearlType, 0.5);
                                 break;
                             case 8 :
-                                audioPlayer.queueClip(folderP8, 0, this, pearlType, 0.4);
+                                audioPlayer.queueClip(folderP8, 0, this, pearlType, 0.5);
                                 break;
                             case 9 :
                                 audioPlayer.queueClip(folderP9, 0, this, pearlType, 0.5);
                                 break;
                             case 10 :
-                                audioPlayer.queueClip(folderP10, 0, this, pearlType, 0.6);
+                                audioPlayer.queueClip(folderP10, 0, this, pearlType, 0.5);
                                 break;    
                             default :
                                 p10orBetter = false;
                                 break;
                         }
-                        if (!p10orBetter && !playedMessageForOutsideTop10 && PearlsOfWisdom.enablePearlsOfWisdom)
+                        // if we're outside the top ten, maybe play a pearl of wisdom - 50/50 chance, 
+                        // scaled by the global multiplier
+                        if (PearlsOfWisdom.enablePearlsOfWisdom && 
+                            !p10orBetter && new Random().NextDouble() > 0.5 * PearlsOfWisdom.pearlsLikelihood)
                         {
-                            if (startPosition > currentState.Position + 5)
+                            if (positionAtLastP10OrWorseMessage > currentState.Position + 5)
                             {
-                                // has made up 5 places, so even though we're outside the top ten give some encouragement
+                                // made up 5 places since last message
                                 audioPlayer.queueClip(PearlsOfWisdom.folderKeepItUp, 0, this);
-                                playedMessageForOutsideTop10 = true;
+                                positionAtLastP10OrWorseMessage = currentState.Position;
                             }
-                            else if (startPosition > currentState.Position)
+                            else if (positionAtLastP10OrWorseMessage < currentState.Position - 1)
+                            {
+                                // lost 2 or more places since last message
+                                audioPlayer.queueClip(PearlsOfWisdom.folderMustDoBetter, 0, this);
+                                positionAtLastP10OrWorseMessage = currentState.Position;
+                            }
+                            else if (!playedFirstMessage)
                             {
                                 audioPlayer.queueClip(PearlsOfWisdom.folderNeutral, 0, this);
-                                playedMessageForOutsideTop10 = true;
-                            }
-                            else
-                            {
-                                audioPlayer.queueClip(PearlsOfWisdom.folderMustDoBetter, 0, this);
-                                playedMessageForOutsideTop10 = true;
+                                positionAtLastP10OrWorseMessage = currentState.Position;
                             }
                         }
                         previousPosition = currentState.Position;
+                        playedFirstMessage = true;
                     }
                 }
             }

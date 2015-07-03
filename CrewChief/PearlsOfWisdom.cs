@@ -9,6 +9,7 @@ namespace CrewChief
     class PearlsOfWisdom
     {
         public static Boolean enablePearlsOfWisdom = Properties.Settings.Default.enable_pearls_of_wisdom;
+        public static double pearlsLikelihood = Properties.Settings.Default.pearls_of_wisdom_likelihood;
         public static String folderMustDoBetter = "pearls_of_wisdom/must_do_better";
         public static String folderKeepItUp = "pearls_of_wisdom/keep_it_up";
         public static String folderNeutral = "pearls_of_wisdom/neutral";
@@ -28,7 +29,7 @@ namespace CrewChief
         public PearlMessagePosition getMessagePosition(double messageProbability)
         {
             double ran = random.NextDouble();
-            if (enablePearlsOfWisdom && messageProbability > ran)
+            if (enablePearlsOfWisdom && messageProbability * pearlsLikelihood > ran)
             {
                 if (ran < 0.5)
                 {

@@ -292,7 +292,7 @@ namespace CrewChief
                     Console.WriteLine("Queuing clip for event " + eventName);
                     long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                     PearlsOfWisdom.PearlMessagePosition pearlPosition = PearlsOfWisdom.PearlMessagePosition.NONE;
-                    if (pearlType != PearlsOfWisdom.PearlType.NONE && !pearlOfWisdomAlreadyQueued())
+                    if (pearlType != PearlsOfWisdom.PearlType.NONE && checkPearlOfWisdomValid(pearlType))
                     {
                         pearlPosition = pearlsOfWisdom.getMessagePosition(pearlMessageProbability);
                     }
@@ -424,21 +424,35 @@ namespace CrewChief
             backgroundPlayer.Position = TimeSpan.FromMilliseconds(1);
         }
 
-        private Boolean pearlOfWisdomAlreadyQueued()
+        // checks that another pearl isn't already queued. If one of the same type is already
+        // in the queue this method just returns false. If a conflicting pearl is in the queue
+        // this method removes it and returns false, so we don't end up with, for example, 
+        // a 'keep it up' message in a block that contains a 'your lap times are worsening' message
+        private Boolean checkPearlOfWisdomValid(PearlsOfWisdom.PearlType newPearlType)
         {
+            Boolean isValid = true;
             if (queuedClips != null && queuedClips.Count > 0)
             {
-                foreach (PearlsOfWisdom.PearlType pearlType in Enum.GetValues(typeof(PearlsOfWisdom.PearlType)))
+                List<String> pearlsToPurge = new List<string>();
+                foreach (String eventName in queuedClips.Keys)
                 {
-                    if (pearlType != PearlsOfWisdom.PearlType.NONE && 
-                        queuedClips.ContainsKey(PearlsOfWisdom.getMessageFolder(pearlType)))
+                    if (clipIsPearlOfWisdom(eventName))
                     {
-                        Console.WriteLine("Pearl of wisdom is already queued, skipping");
-                        return true;
+                        Console.WriteLine("There's already a pearl in the queue, can't add anothner");
+                        isValid = false;
+                        if (eventName != PearlsOfWisdom.getMessageFolder(newPearlType))
+                        {
+                            pearlsToPurge.Add(eventName);
+                        }
                     }
                 }
+                foreach (String pearlToPurge in pearlsToPurge)
+                {
+                    queuedClips.Remove(pearlToPurge);
+                    Console.WriteLine("Queue contains a pearl " + pearlToPurge + " which conflicts with " + newPearlType);
+                }
             }
-            return false;
+            return isValid;
         }
 
         private Boolean clipIsPearlOfWisdom(String eventName)

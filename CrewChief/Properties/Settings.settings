@@ -38,8 +38,8 @@
     <Setting Name="minimum_time_between_pearls_of_wisdom" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">40</Value>
     </Setting>
-    <Setting Name="Setting" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+    <Setting Name="pearls_of_wisdom_likelihood" Type="System.Single" Scope="Application">
+      <Value Profile="(Default)">1</Value>
     </Setting>
   </Settings>
 </SettingsFile>
