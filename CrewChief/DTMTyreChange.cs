@@ -76,7 +76,7 @@ namespace CrewChief.Events
                         optionsToPrimeLap = (int) Math.Round((float) nlaps / 2.0f) - 1;
                         primesToOptionsLap = optionsToPrimeLap + 1;
                         pitWindowOpenLap = (int) Math.Round((float) nlaps / 3.0f);
-                        pitWindowClosingLap = pitWindowOpenLap + 3;
+                        pitWindowClosingLap = pitWindowOpenLap * 2;
                         Console.WriteLine("Setting up pit window data. Num laps = " + nlaps + ", options to prime lap = " + optionsToPrimeLap +
                             ", primes to options lap = " + primesToOptionsLap + ", window opens at end of lap " + pitWindowOpenLap + ", window closes at end of lap " + pitWindowClosingLap);
                     }
