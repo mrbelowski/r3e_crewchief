@@ -24,6 +24,8 @@ For version 1.3 I've added engine temperature monitoring, but there's an issue i
 For version 1.4 there are now semi-random pearls of wisdom / helpful advice / annoying patronising nonsense added to some messages. Hopefully these aren't intrusive or too regular (or too embarrassing)
 Changes
 -------
+Version 1.5: Don't spam 'session time' events when joining an online practice / qual part way through; fixed stupid wrong calculation of pit window close lap
+
 Version 1.4: Fixed NPE in engine monitor when starting app after starting game; Lowered tyre temp 'hot' temp to trigger more warnings; Added pearls of wisdom. This adds some encouragement to some events. There are 'good', 'neutral' and 'must do better' messages. They are triggered by a probability (i.e. if you take the lead there's a 50% chance of a 'good' message). The messages sometimes play before the event they're associated with, sometimes after. There will only ever be 1 such message queued at a time and you won't get more than one every 40 seconds (so you won't hear a 'good' then shortly after a 'must do better' event). The min time between pearls is in the config file, and they can also be disabled from there.
 
 Version 1.3: Fixed null pointer exception in tyre temp monitor - this happens when you start a race and then start this app; added engine temperature monitoring (note the caveat above)
