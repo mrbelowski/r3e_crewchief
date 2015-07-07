@@ -51,7 +51,7 @@ namespace CrewChief
             eventsList.Add(new LapCounter(audioPlayer));
             eventsList.Add(new LapTimes(audioPlayer));
             eventsList.Add(new Penalties(audioPlayer));
-            eventsList.Add(new DTMTyreChange(audioPlayer));            
+            eventsList.Add(new MandatoryPitStops(audioPlayer));            
             eventsList.Add(new Fuel(audioPlayer));
             eventsList.Add(new Position(audioPlayer));
             eventsList.Add(new RaceTime(audioPlayer));

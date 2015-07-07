@@ -6,8 +6,52 @@ namespace CrewChief
     class Constant
     {
         public const string SharedMemoryName = "$Race$";
+
+        public enum Session
+        {
+            Unavailable = -1,
+            Practice = 0,
+            Qualify = 1,
+            Race = 2
+        }
+
+        public enum SessionPhase
+        {
+            Unavailable = -1,
+            Garage = 0,
+            Gridwalk = 2,
+            Formation = 3,
+            Countdown = 4,
+            Green = 5,
+            Checkered = 6
+        }
+
+        public enum Control
+        {
+            Unavailable = -1,
+            Player = 0,
+            AI = 1,
+            Remote = 2,
+            Replay = 3
+        }
+
+        public enum PitWindow
+        {
+            Unavailable = -1,
+            Disabled = 0,
+            Closed = 1,
+            Open = 2,
+            Completed = 3
+        }
+
+        public enum TireType
+        {
+            Unavailable = -1,
+            Option = 0,
+            Prime = 1
+        }
     }
-    // shamelessly pinched from S3's sample app
+
     namespace Data
     {
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -94,6 +138,112 @@ namespace CrewChief
 
             // Acceleration of driver's body in local coordinates
             public Vector3<Double> DriverBodyAcceleration;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        internal struct Flags
+        {
+            // Whether yellow flag is currently active
+            // -1 = no data
+            //  0 = not active
+            //  1 = active
+            public Int32 Yellow;
+
+            // Whether blue flag is currently active
+            // -1 = no data
+            //  0 = not active
+            //  1 = active
+            public Int32 Blue;
+
+            // Whether black flag is currently active
+            // -1 = no data
+            //  0 = not active
+            //  1 = active
+            public Int32 Black;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        internal struct CarDamage
+        {
+            // ...
+            public Single Engine;
+
+            // ...
+            public Single Transmission;
+
+            // ...
+            public Single Aerodynamics;
+
+            // ...
+            public Single TireFrontLeft;
+
+            // ...
+            public Single TireFrontRight;
+
+            // ...
+            public Single TireRearLeft;
+
+            // ...
+            public Single TireRearRight;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        internal struct TirePressure
+        {
+            // ...
+            public Single FrontLeft;
+
+            // ...
+            public Single FrontRight;
+
+            // ...
+            public Single RearLeft;
+
+            // ...
+            public Single RearRight;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        internal struct BrakeTemperatures
+        {
+            // ...
+            public Single FrontLeft;
+
+            // ...
+            public Single FrontRight;
+
+            // ...
+            public Single RearLeft;
+
+            // ...
+            public Single RearRight;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        internal struct CutTrackPenalties
+        {
+            // ...
+            public Int32 DriveThrough;
+
+            // ...
+            public Int32 StopAndGo;
+
+            // ...
+            public Int32 PitStop;
+
+            // ...
+            public Int32 TimeDeduction;
+
+            // ...
+            public Int32 SlowDown;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        internal struct Sectors<T>
+        {
+            public T Sector1;
+            public T Sector2;
+            public T Sector3;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -196,6 +346,106 @@ namespace CrewChief
 
             // High precision data for player's vehicle only
             public PlayerData Player;
+
+            // ...
+            public Int32 EventIndex;
+
+            // ...
+            public Int32 SessionType;
+
+            // ...
+            public Int32 SessionPhase;
+
+            // ...
+            public Int32 SessionIteration;
+
+            // ...
+            public Int32 ControlType;
+
+            // ...
+            public Single ThrottlePedal;
+
+            // ...
+            public Single BrakePedal;
+
+            // ...
+            public Single ClutchPedal;
+
+            // ...
+            public Single BrakeBias;
+
+            // ...
+            public TirePressure TirePressure;
+
+            // ...
+            public Int32 TireWearActive;
+
+            // ...
+            public Int32 TireType;
+
+            // ...
+            public BrakeTemperatures BrakeTemperatures;
+
+            // -1 = no data
+            //  0 = not active
+            //  1 = active
+            public Int32 FuelUseActive;
+
+            // ...
+            public Single SessionTimeRemaining;
+
+            // ...
+            public Single LapTimeBestLeader;
+
+            // ...
+            public Single LapTimeBestLeaderClass;
+
+            // ...
+            public Single LapTimeDeltaSelf;
+
+            // ...
+            public Single LapTimeDeltaLeader;
+
+            // ...
+            public Single LapTimeDeltaLeaderClass;
+
+            // ...
+            public Sectors<Single> SectorTimeDeltaSelf;
+
+            // ...
+            public Sectors<Single> SectorTimeDeltaLeader;
+
+            // ...
+            public Sectors<Single> SectorTimeDeltaLeaderClass;
+
+            // ...
+            public Single TimeDeltaFront;
+
+            // ...
+            public Single TimeDeltaBehind;
+
+            // ...
+            public Int32 PitWindowStatus;
+
+            // The minute/lap into which you're allowed/obligated to pit
+            // Unit: Minutes in time-based sessions, otherwise lap
+            public Int32 PitWindowStart;
+
+            // The minute/lap into which you can/should pit
+            // Unit: Minutes in time based sessions, otherwise lap
+            public Int32 PitWindowEnd;
+
+            // Total number of cut track warnings
+            public Int32 CutTrackWarnings;
+
+            // ...
+            public CutTrackPenalties Penalties;
+
+            // ...
+            public Flags Flags;
+
+            // ...
+            public CarDamage CarDamage;
         }
     }
 }

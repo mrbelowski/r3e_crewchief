@@ -11,12 +11,14 @@ namespace CrewChief.Events
         protected AudioPlayer audioPlayer;
 
         protected Boolean isNewLap;
-    
-        protected Boolean isRaceMode;
-
+            
         protected Boolean isNew;
 
+        protected Boolean isRaceStarted;
+
         protected PearlsOfWisdom pearlsOfWisdom;
+
+        protected int currentLapSector;
 
         // this is called on each 'tick' (currently every 2 seconds) - the event subtype should
         // place its logic in here including calls to audioPlayer.queueClip
@@ -52,12 +54,11 @@ namespace CrewChief.Events
         }
 
         private void getCommonStateData(Shared lastState, Shared currentState)
-        {
-            // currently I've got no reliable way to distinguish between a practice / qual / race sessions. It'd be 
-            // nice to tailor the behaviour of the events to the session type.
-            isRaceMode = true;
-
+        {            
             isNewLap = isNew || (currentState.CompletedLaps > 0 && lastState.CompletedLaps < currentState.CompletedLaps);
+            //TODO: get the current sector
+            currentLapSector = 0;
+            isRaceStarted = currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int) Constant.Session.Race;
         }
     }
 }

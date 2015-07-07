@@ -81,7 +81,7 @@
     <Compile Include="SmokeTest.cs" />
     <Compile Include="Penalties.cs" />
     <Compile Include="Fuel.cs" />
-    <Compile Include="DTMTyreChange.cs" />
+    <Compile Include="MandatoryPitStops.cs" />
     <Compile Include="LapTimes.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Utilities.cs" />

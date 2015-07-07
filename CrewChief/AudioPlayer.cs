@@ -246,7 +246,7 @@ namespace CrewChief
                     }
                     if (keysToPlay.Count > 0)
                     {
-                        playSounds(keysToPlay);
+                        playSounds(keysToPlay, false);
                     }
                     foreach (String key in keysToRemove)
                     {
@@ -321,8 +321,17 @@ namespace CrewChief
                 }
             }
         }
+
+        /**Don't use this unless you *really* have to (like the Green Green Green message) */
+        public void playClipImmediately(String eventName)
+        {
+            Console.WriteLine("Clip " + eventName + " is being forcably played with no queuing");
+            List<String> eventNames = new List<string>();
+            eventNames.Add(eventName);
+            playSounds(eventNames, true);
+        }
     
-        private void playSounds(List<String> eventNames) {
+        private void playSounds(List<String> eventNames, Boolean blockBackground) {
             if (eventNames.Count == 1 && clipIsPearlOfWisdom(eventNames[0]) && hasPearlJustBeenPlayed())
             {
                 Console.WriteLine("Rejecting pearl of wisdom " + eventNames[0] + 
@@ -340,7 +349,7 @@ namespace CrewChief
             {
                 // this looks like we're doing it the wrong way round but there's a short
                 // delay playing the event sound, so if we kick off the background before the bleep
-                if (backgroundVolume > 0)
+                if (!blockBackground && backgroundVolume > 0)
                 {
                     int backgroundDuration = 0;
                     int backgroundOffset = 0;
@@ -396,7 +405,7 @@ namespace CrewChief
                     int bleepIndex = random.Next(0, bleeps.Count);
                     bleeps[bleepIndex].PlaySync();
                 }
-                if (backgroundVolume > 0)
+                if (!blockBackground && backgroundVolume > 0)
                 {
                     backgroundPlayer.Stop();
                 }   

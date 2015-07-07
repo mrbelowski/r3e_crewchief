@@ -30,16 +30,10 @@ namespace CrewChief.Events
 
         // fuel in tank 15 seconds after game start
         private float fuelAfter15Seconds;
-
-        // fuel in tank 30 seconds after game start - used to establish whether fuel is actually being used.
-        // In practice & qual sessions the game clock might be running even though the player's car isn't in 
-        // the world and using fuel, resulting in fuel tracking being incorrectly disabled for practice & qual sessions.
-        // It should re-enable when the race starts though
-        private float fuelAfter30Seconds;
-
+        
         private int halfDistance;
 
-        private Boolean trackFuelUse;
+        private float halfTime;
 
         private Boolean playedThreeQuarterTankWarning;
 
@@ -49,7 +43,7 @@ namespace CrewChief.Events
 
         private Boolean initialised;
 
-        private Boolean gotFuelAfter15Seconds;
+        private Boolean playedHalfTimeFuelEstimate;
 
         public Fuel(AudioPlayer audioPlayer)
         {
@@ -59,16 +53,14 @@ namespace CrewChief.Events
         protected override void clearStateInternal()
         {
             fuelAfter15Seconds = 0;
-            fuelAfter30Seconds = 0;
             averageUsagePerLap = 0;
             halfDistance = 0;
-            trackFuelUse = false;
             playedThreeQuarterTankWarning = false;
             playedHalfTankWarning = false;
             playedQuarterTankWarning = false;
             initialised = false;
-            gotFuelAfter15Seconds = false;
-
+            halfTime = 0;
+            playedHalfTimeFuelEstimate = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -78,43 +70,32 @@ namespace CrewChief.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (isRaceMode)
+            if (isRaceStarted && currentState.FuelUseActive == 1)
             {
                 // some nasty logic here. When starting a race with fuel use disabled it starts out at 100L and quickly changes to 50L, then no more usage
                 // To get the initial fuel, wait for the race to actually start - use 15 seconds here - then check again after another 15
-                if (!gotFuelAfter15Seconds && currentState.Player.GameSimulationTime > 15)
+                if (!initialised && currentState.Player.GameSimulationTime > 15)
                 {
                     fuelAfter15Seconds = currentState.FuelLeft;
                     Console.WriteLine("Fuel after 15s = " + fuelAfter15Seconds);
-                    gotFuelAfter15Seconds = true;
-                }
-                else if (!initialised && currentState.Player.GameSimulationTime > 30)
-                {
-                    fuelAfter30Seconds = currentState.FuelLeft;
-                    if (fuelAfter30Seconds < fuelAfter15Seconds)
+                    initialised = true;
+                    if (currentState.NumberOfLaps > 0)
                     {
-                        Console.WriteLine("Tracking fuel useage");
-                        trackFuelUse = true;
-                        if (currentState.NumberOfLaps > 0)
-                        {
-                            halfDistance = currentState.NumberOfLaps / 2;
-                        }
+                        halfDistance = currentState.NumberOfLaps / 2;
                     }
                     else
                     {
-                        Console.WriteLine("Fuel is not being used");
-                        trackFuelUse = false;
+                        halfTime = currentState.SessionTimeRemaining / 2;
                     }
-                    initialised = true;
                 }
-                if (isNewLap)
+                if (isNewLap && initialised)
                 {
                     // in races where we know how many laps there are (DTM 2014 only AFAIK), 
                     // we can check fuel usage at half distance and say whether the player needs to 
                     // save fuel in the 2nd half of the race. Of course, DTM 2014 doesn't include fuel
                     // usage, and races with fuel usage are (I think) timed rather than a number of laps,
                     // and the race time & time left aren't in the shared memory block, so this block is unreachable :(
-                    if (trackFuelUse && currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
+                    if (currentState.FuelUseActive == 1 && currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
                     {
                         averageUsagePerLap = (fuelAfter15Seconds - currentState.FuelLeft) / currentState.CompletedLaps;
 
@@ -157,9 +138,21 @@ namespace CrewChief.Events
                         }
                     }
                 }
+                else if (!playedHalfTimeFuelEstimate && currentState.SessionTimeRemaining < halfTime)
+                {
+                    playedHalfTimeFuelEstimate = true;
+                    if (currentState.FuelLeft / fuelAfter15Seconds <= 0.50)
+                    {
+                        audioPlayer.queueClip(folderHalfDistanceLowFuel, 0, this);
+                    }
+                    else
+                    {
+                        audioPlayer.queueClip(folderHalfDistanceGoodFuel, 0, this);
+                    }
+                }
                 else
                 {
-                    if (trackFuelUse)
+                    if (currentState.FuelUseActive == 1)
                     {
                         // warning messages for fuel left - these play as soon as the fuel reaches 
                         // 3/4, 1/2, or 1/4 of a tank left

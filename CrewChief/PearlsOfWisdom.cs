@@ -40,8 +40,9 @@ namespace CrewChief
                     return PearlMessagePosition.AFTER;
                 }
             }
-            Console.WriteLine("Not playing message, enabled = " + enablePearlsOfWisdom + " probability = " + messageProbability
-                + " scaled random (probability must be higher than this) = " + ran * pearlsLikelihood);
+            Console.WriteLine("Not playing message, enabled = " + enablePearlsOfWisdom +
+                " probability = " + messageProbability * pearlsLikelihood
+                + " scaled random (probability must be higher than this) = " + ran);
             return PearlMessagePosition.NONE;
         }
 

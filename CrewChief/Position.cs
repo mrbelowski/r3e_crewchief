@@ -30,9 +30,9 @@ namespace CrewChief.Events
 
         private int previousPosition;
 
-        private Boolean playedFirstMessage;
-
         private int positionAtLastP10OrWorseMessage;
+
+        private int lapNumberAtLastMessage;
 
         public Position(AudioPlayer audioPlayer)
         {
@@ -42,7 +42,7 @@ namespace CrewChief.Events
         protected override void clearStateInternal()
         {
             previousPosition = 0;
-            playedFirstMessage = false;
+            lapNumberAtLastMessage = 0;
             positionAtLastP10OrWorseMessage = 0;
         }
 
@@ -62,7 +62,8 @@ namespace CrewChief.Events
                 if (previousPosition == 0 && currentState.Position > 0) {
                     previousPosition = currentState.Position;
                 } else {
-                    if (!playedFirstMessage || previousPosition != currentState.Position) {
+                    if (currentState.NumberOfLaps > lapNumberAtLastMessage + 3
+                            || previousPosition != currentState.Position) {
                         PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.BAD;
                         if (previousPosition > currentState.Position + 5 || (previousPosition > currentState.Position && currentState.Position <= 5))
                         {
@@ -131,14 +132,14 @@ namespace CrewChief.Events
                                 audioPlayer.queueClip(PearlsOfWisdom.folderMustDoBetter, 0, this);
                                 positionAtLastP10OrWorseMessage = currentState.Position;
                             }
-                            else if (!playedFirstMessage)
+                            else
                             {
                                 audioPlayer.queueClip(PearlsOfWisdom.folderNeutral, 0, this);
                                 positionAtLastP10OrWorseMessage = currentState.Position;
                             }
                         }
                         previousPosition = currentState.Position;
-                        playedFirstMessage = true;
+                        lapNumberAtLastMessage = currentState.NumberOfLaps;
                     }
                 }
             }

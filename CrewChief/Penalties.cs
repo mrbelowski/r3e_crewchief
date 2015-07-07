@@ -12,14 +12,18 @@ namespace CrewChief.Events
         // we need this because the play might cross the start line while serving 
         // a penalty, so we should wait before telling them how many laps they have to serve it
         private int pitstopDelay = 20;
-    
-        private String folderNewPenalty = "penalties/new_penalty";
+
+        private String folderNewPenaltyStopGo = "penalties/new_penalty_stopgo";
+
+        private String folderNewPenaltyDriveThrough = "penalties/new_penalty_drivethrough";
 
         private String folderThreeLapsToServe = "penalties/penalty_three_laps_left";
 
         private String folderTwoLapsToServe = "penalties/penalty_two_laps_left";
-            
-        private String folderOneLapToServe = "penalties/penalty_one_lap_left";
+
+        private String folderOneLapToServeStopGo = "penalties/penalty_one_lap_left_stopgo";
+
+        private String folderOneLapToServeDriveThrough = "penalties/penalty_one_lap_left_drivethrough";
 
         private String folderDisqualified = "penalties/penalty_disqualified";
             
@@ -59,14 +63,48 @@ namespace CrewChief.Events
                 return hasOutstandingPenalty;
             }
         }
+
+        private Boolean hasNewDriveThrough(Shared lastState, Shared currentState)
+        {
+            return currentState.Penalties.DriveThrough > lastState.Penalties.DriveThrough;
+        }
+
+        private Boolean hasNewStopGo(Shared lastState, Shared currentState)
+        {
+            return currentState.Penalties.StopAndGo > lastState.Penalties.StopAndGo;
+        }
+
+        private Boolean hasDriveThrough(Shared currentState)
+        {
+            return currentState.Penalties.DriveThrough > 0;
+        }
+
+        private Boolean hasStopGo(Shared currentState)
+        {
+            return currentState.Penalties.StopAndGo > 0;
+        }
     
         override protected void triggerInternal(Shared lastState, Shared currentState) {
-            if (currentState.NumPenalties > 0) 
+            if (isRaceStarted && hasDriveThrough(currentState) || hasStopGo(currentState)) 
             {
-                if (currentState.NumPenalties > lastState.NumPenalties) {
+                if (hasNewDriveThrough(lastState, currentState)) {
                     lapsCompleted = currentState.CompletedLaps;
                     // this is a new penalty
-                    audioPlayer.queueClip(folderNewPenalty, 0, this);
+                    audioPlayer.queueClip(folderNewPenaltyDriveThrough, 0, this);
+                    // queue a '3 laps to serve penalty' message - this might not get played
+                    audioPlayer.queueClip(folderThreeLapsToServe, 20, this);
+                    // we don't already have a penalty
+                    if (penaltyLap == -1 || !hasOutstandingPenalty)
+                    {
+                        penaltyLap = currentState.CompletedLaps;
+                    }
+                    hasOutstandingPenalty = true;
+                }
+                else if (hasNewStopGo(lastState, currentState))
+                {
+                    lapsCompleted = currentState.CompletedLaps;
+                    // this is a new penalty
+                    audioPlayer.queueClip(folderNewPenaltyStopGo, 0, this);
                     // queue a '3 laps to serve penalty' message - this might not get played
                     audioPlayer.queueClip(folderThreeLapsToServe, 20, this);
                     // we don't already have a penalty
@@ -86,9 +124,13 @@ namespace CrewChief.Events
                         // might help a little...
                         audioPlayer.queueClip(folderDisqualified, 5, this);
                     }
-                    if (lapsCompleted - penaltyLap == 2)
+                    else if (lapsCompleted - penaltyLap == 2 && hasDriveThrough(currentState))
                     {
-                        audioPlayer.queueClip(folderOneLapToServe, pitstopDelay, this);
+                        audioPlayer.queueClip(folderOneLapToServeDriveThrough, pitstopDelay, this);
+                    }
+                    else if (lapsCompleted - penaltyLap == 2 && hasStopGo(currentState))
+                    {
+                        audioPlayer.queueClip(folderOneLapToServeStopGo, pitstopDelay, this);
                     }
                     else if (lapsCompleted - penaltyLap == 1)
                     {
