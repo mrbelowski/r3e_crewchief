@@ -39,12 +39,12 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return true;
+            return isSessionRunning;
         }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (currentState.SessionTimeRemaining > -1)
+            if (currentState.SessionTimeRemaining > -1 && isSessionRunning)
             {
                 if (!gotHalfTime)
                 {

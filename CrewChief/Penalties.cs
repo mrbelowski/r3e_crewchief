@@ -56,11 +56,11 @@ namespace CrewChief.Events
             if (eventSubType == folderThreeLapsToServe)
             {
                 Console.WriteLine("checking penalty validity, pen lap = " + penaltyLap + ", completed =" + lapsCompleted);
-                return hasOutstandingPenalty && lapsCompleted == penaltyLap;
+                return hasOutstandingPenalty && lapsCompleted == penaltyLap && isSessionRunning;
             }
             else
             {
-                return hasOutstandingPenalty;
+                return hasOutstandingPenalty && isSessionRunning;
             }
         }
 

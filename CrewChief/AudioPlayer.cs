@@ -14,6 +14,8 @@ namespace CrewChief
     {
         private Dictionary<String, List<SoundPlayer>> clips = new Dictionary<String, List<SoundPlayer>>();
 
+        private int queueMonitorInterval = 100;
+
         private String soundFolderName = Properties.Settings.Default.sound_files_path;
 
         private String backgroundFolderName = Properties.Settings.Default.background_sound_files_path;
@@ -210,7 +212,7 @@ namespace CrewChief
                 setBackgroundSound(dtmPitWindowClosedBackground);
             }
             while (true) { 
-                Thread.Sleep(1000);
+                Thread.Sleep(queueMonitorInterval);
                 long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                 List<String> keysToRemove = new List<String>();
                 List<String> keysToPlay = new List<String>();
@@ -322,7 +324,9 @@ namespace CrewChief
             }
         }
 
-        /**Don't use this unless you *really* have to (like the Green Green Green message) */
+        /**Don't use this unless you *really* have to (like the Green Green Green message). It's only for 
+         cases where the message has to be played *immediately*. This will skip the background sounds (because
+         * the Th. */
         public void playClipImmediately(String eventName)
         {
             Console.WriteLine("Clip " + eventName + " is being forcably played with no queuing");
@@ -331,6 +335,8 @@ namespace CrewChief
             playSounds(eventNames, true);
         }
     
+        // use blockBackground if this call to play comes from a different Thread to the queue monitor - 
+        // currently only from the playClipImmediately method
         private void playSounds(List<String> eventNames, Boolean blockBackground) {
             if (eventNames.Count == 1 && clipIsPearlOfWisdom(eventNames[0]) && hasPearlJustBeenPlayed())
             {

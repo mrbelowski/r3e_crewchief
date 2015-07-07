@@ -45,6 +45,10 @@ namespace CrewChief.Events
 
         private Boolean playedHalfTimeFuelEstimate;
 
+        private int fuelUseWindowLength = 3;
+
+        private List<float> fuelUseWindow;
+
         public Fuel(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -61,19 +65,21 @@ namespace CrewChief.Events
             initialised = false;
             halfTime = 0;
             playedHalfTimeFuelEstimate = false;
+            fuelUseWindow = new List<float>();
         }
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return true;
+            return isSessionRunning;
         }
 
+        // TODO: track fuel use over a sliding window (3 laps or 5 minutes, for example) and base the fuel
+        // remaining estimates on this rather than taking fuel use over the whole race
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             if (isRaceStarted && currentState.FuelUseActive == 1)
             {
-                // some nasty logic here. When starting a race with fuel use disabled it starts out at 100L and quickly changes to 50L, then no more usage
-                // To get the initial fuel, wait for the race to actually start - use 15 seconds here - then check again after another 15
+                // To get the initial fuel, wait for 15 seconds
                 if (!initialised && currentState.Player.GameSimulationTime > 15)
                 {
                     fuelAfter15Seconds = currentState.FuelLeft;
@@ -90,20 +96,26 @@ namespace CrewChief.Events
                 }
                 if (isNewLap && initialised)
                 {
-                    // in races where we know how many laps there are (DTM 2014 only AFAIK), 
-                    // we can check fuel usage at half distance and say whether the player needs to 
-                    // save fuel in the 2nd half of the race. Of course, DTM 2014 doesn't include fuel
-                    // usage, and races with fuel usage are (I think) timed rather than a number of laps,
-                    // and the race time & time left aren't in the shared memory block, so this block is unreachable :(
-                    if (currentState.FuelUseActive == 1 && currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
+                    if (currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
                     {
-                        averageUsagePerLap = (fuelAfter15Seconds - currentState.FuelLeft) / currentState.CompletedLaps;
-
-                        int estimatedFuelLapsLeft = (int)Math.Floor(currentState.FuelLeft / averageUsagePerLap);
-                        
+                        fuelUseWindow.Add(fuelAfter15Seconds - currentState.FuelLeft);
+                        if (fuelUseWindow.Count >= fuelUseWindowLength)
+                        {
+                            averageUsagePerLap = 0;
+                            for (int i = fuelUseWindow.Count - 1; i > fuelUseWindow.Count - fuelUseWindowLength; i-- )
+                            {
+                                averageUsagePerLap += fuelUseWindow[i];
+                            }
+                            averageUsagePerLap = averageUsagePerLap / fuelUseWindowLength;
+                        }
+                        else
+                        {
+                            averageUsagePerLap = (fuelAfter15Seconds - currentState.FuelLeft) / currentState.CompletedLaps;
+                        }
+                        int estimatedFuelLapsLeft = (int)Math.Floor(currentState.FuelLeft / averageUsagePerLap);                        
                         if (currentState.CompletedLaps == halfDistance)
                         {
-                            if (currentState.FuelLeft > fuelAfter15Seconds / 2)
+                            if (estimatedFuelLapsLeft > halfDistance)
                             {
                                 audioPlayer.queueClip(folderHalfDistanceGoodFuel, 0, this);
                             }
@@ -138,8 +150,9 @@ namespace CrewChief.Events
                         }
                     }
                 }
-                else if (!playedHalfTimeFuelEstimate && currentState.SessionTimeRemaining < halfTime)
+                else if (initialised && !playedHalfTimeFuelEstimate && currentState.SessionTimeRemaining < halfTime)
                 {
+                    // TODO: log fuel use every minute for the windowing data
                     playedHalfTimeFuelEstimate = true;
                     if (currentState.FuelLeft / fuelAfter15Seconds <= 0.50)
                     {
@@ -150,31 +163,28 @@ namespace CrewChief.Events
                         audioPlayer.queueClip(folderHalfDistanceGoodFuel, 0, this);
                     }
                 }
-                else
+                else if (initialised)
                 {
-                    if (currentState.FuelUseActive == 1)
+                    // warning messages for fuel left - these play as soon as the fuel reaches 
+                    // 3/4, 1/2, or 1/4 of a tank left
+                    if (!playedQuarterTankWarning && currentState.FuelLeft / fuelAfter15Seconds <= 0.25)
                     {
-                        // warning messages for fuel left - these play as soon as the fuel reaches 
-                        // 3/4, 1/2, or 1/4 of a tank left
-                        if (!playedQuarterTankWarning && currentState.FuelLeft / fuelAfter15Seconds <= 0.25)
-                        {
-                            // if we're playing this message we don't want to play the 1/2 and 3/4 tank
-                            playedQuarterTankWarning = true;
-                            playedHalfTankWarning = true;
-                            playedThreeQuarterTankWarning = true;
-                            audioPlayer.queueClip(folderQuarterTankWarning, 0, this);
-                        }
-                        else if (!playedHalfTankWarning && currentState.FuelLeft / fuelAfter15Seconds <= 0.50)
-                        {
-                            playedHalfTankWarning = true;
-                            playedThreeQuarterTankWarning = true;
-                            audioPlayer.queueClip(folderHalfTankWarning, 0, this);
-                        }
-                        else if (!playedThreeQuarterTankWarning && currentState.FuelLeft / fuelAfter15Seconds <= 0.75)
-                        {
-                            playedThreeQuarterTankWarning = true;
-                            audioPlayer.queueClip(folderThreeQuarterTankWarning, 0, this);
-                        }
+                        // if we're playing this message we don't want to play the 1/2 and 3/4 tank
+                        playedQuarterTankWarning = true;
+                        playedHalfTankWarning = true;
+                        playedThreeQuarterTankWarning = true;
+                        audioPlayer.queueClip(folderQuarterTankWarning, 0, this);
+                    }
+                    else if (!playedHalfTankWarning && currentState.FuelLeft / fuelAfter15Seconds <= 0.50)
+                    {
+                        playedHalfTankWarning = true;
+                        playedThreeQuarterTankWarning = true;
+                        audioPlayer.queueClip(folderHalfTankWarning, 0, this);
+                    }
+                    else if (!playedThreeQuarterTankWarning && currentState.FuelLeft / fuelAfter15Seconds <= 0.75)
+                    {
+                        playedThreeQuarterTankWarning = true;
+                        audioPlayer.queueClip(folderThreeQuarterTankWarning, 0, this);
                     }
                 }
             }

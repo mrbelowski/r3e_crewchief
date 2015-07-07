@@ -67,12 +67,12 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return true;
+            return isSessionRunning;
         }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (currentState.Player.GameSimulationTime > lastDataPointGameTime)
+            if (isSessionRunning && currentState.Player.GameSimulationTime > lastDataPointGameTime)
             {
                 if (engineData == null)
                 {

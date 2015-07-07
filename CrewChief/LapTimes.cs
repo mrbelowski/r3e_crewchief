@@ -49,17 +49,12 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return true;
+            return isSessionRunning;
         }
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
         {
-            // race is ended check - only works for DTM at the moment :(
-            if (isNewLap && currentState.NumberOfLaps > 0 && currentState.CompletedLaps == currentState.NumberOfLaps)
-            {
-                return;
-            }
-            if (isNewLap && currentState.CompletedLaps > 0)
+            if (isSessionRunning && isNewLap && currentState.CompletedLaps > 0)
             {
                 if (lapTimesWindow == null || lapTimesWindow.Count == 0)
                 {

@@ -48,7 +48,7 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return true;
+            return isSessionRunning;
         }
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
@@ -58,24 +58,27 @@ namespace CrewChief.Events
                 previousPosition = currentState.Position;
                 positionAtLastP10OrWorseMessage = currentState.Position;
             }
-            if (isNewLap) {
+            if (isNewLap && isSessionRunning) {
                 if (previousPosition == 0 && currentState.Position > 0) {
                     previousPosition = currentState.Position;
                 } else {
                     if (currentState.NumberOfLaps > lapNumberAtLastMessage + 3
                             || previousPosition != currentState.Position) {
-                        PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.BAD;
-                        if (previousPosition > currentState.Position + 5 || (previousPosition > currentState.Position && currentState.Position <= 5))
+                        PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.NONE;
+                        if (isRaceStarted)
                         {
-                            pearlType = PearlsOfWisdom.PearlType.GOOD;
-                        }
-                        else if (previousPosition < currentState.Position && currentState.Position > 5)
-                        {
-                            pearlType = PearlsOfWisdom.PearlType.BAD;
-                        }
-                        else
-                        {
-                            pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
+                            if (previousPosition > currentState.Position + 5 || (previousPosition > currentState.Position && currentState.Position <= 5))
+                            {
+                                pearlType = PearlsOfWisdom.PearlType.GOOD;
+                            }
+                            else if (previousPosition < currentState.Position && currentState.Position > 5)
+                            {
+                                pearlType = PearlsOfWisdom.PearlType.BAD;
+                            }
+                            else
+                            {
+                                pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
+                            }
                         }
                         Console.WriteLine("Position event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);
                         Boolean p10orBetter = true;
@@ -117,7 +120,8 @@ namespace CrewChief.Events
                         }
                         // if we're outside the top ten, maybe play a pearl of wisdom - 50/50 chance, 
                         // scaled by the global multiplier
-                        if (PearlsOfWisdom.enablePearlsOfWisdom && 
+                        if ((isRaceStarted || currentState.NumberOfLaps > lapNumberAtLastMessage + 3) &&
+                            PearlsOfWisdom.enablePearlsOfWisdom && 
                             !p10orBetter && new Random().NextDouble() > 0.5 * PearlsOfWisdom.pearlsLikelihood)
                         {
                             if (positionAtLastP10OrWorseMessage > currentState.Position + 5)

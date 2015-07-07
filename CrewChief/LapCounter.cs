@@ -52,7 +52,7 @@ namespace CrewChief.Events
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             if (!playedGreenGreenGreen && lastState.SessionPhase == (int) Constant.SessionPhase.Countdown && currentState.SessionPhase == (int) Constant.SessionPhase.Green) {
-                audioPlayer.playClipImmediately(folderGreenGreenGreen);
+                audioPlayer.queueClip(folderGreenGreenGreen, 0, this);
                 playedGreenGreenGreen = true;
             }
             if (!playedFinished && currentState.Player.GameSimulationTime > 60 &&

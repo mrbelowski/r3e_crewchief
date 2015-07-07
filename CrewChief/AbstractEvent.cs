@@ -16,6 +16,8 @@ namespace CrewChief.Events
 
         protected Boolean isRaceStarted;
 
+        protected Boolean isSessionRunning;
+
         protected PearlsOfWisdom pearlsOfWisdom;
 
         protected int currentLapSector;
@@ -56,9 +58,9 @@ namespace CrewChief.Events
         private void getCommonStateData(Shared lastState, Shared currentState)
         {            
             isNewLap = isNew || (currentState.CompletedLaps > 0 && lastState.CompletedLaps < currentState.CompletedLaps);
-            //TODO: get the current sector
             currentLapSector = 0;
             isRaceStarted = currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int) Constant.Session.Race;
+            isSessionRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green;
         }
     }
 }
