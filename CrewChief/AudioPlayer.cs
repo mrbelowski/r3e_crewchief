@@ -226,13 +226,8 @@ namespace CrewChief
                         loadNewBackground = false;
                     }
                     
-                    if (queuedClips.Count > 0)
-                    {
-                        Console.WriteLine("There are {0} queued events", queuedClips.Count);
-                    }
                     foreach (KeyValuePair<String, QueueObject> entry in queuedClips)
-                    {
-                        Console.WriteLine("Sound " + entry.Key + " is queued to play after " + entry.Value.dueTime + ". It is now " + milliseconds);
+                    {                        
                         if (entry.Value.dueTime <= milliseconds)
                         {
                             if ((entry.Value.abstractEvent == null || entry.Value.abstractEvent.isClipStillValid(entry.Key)) && !keysToPlay.Contains(entry.Key))

@@ -66,6 +66,8 @@ namespace CrewChief.Events
 
         private Boolean play2minCloseWarning;
 
+        private Boolean playPitThisLap;
+
         public MandatoryPitStops(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -89,6 +91,7 @@ namespace CrewChief.Events
             play1minCloseWarning = false;
             playClosedNow = false;
             playOpenNow = false;
+            playPitThisLap = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -133,6 +136,7 @@ namespace CrewChief.Events
                         play2minCloseWarning = true;
                         play1minCloseWarning = true;
                         playClosedNow = true;
+                        playPitThisLap = true;
                     }
                     else
                     {
@@ -144,9 +148,13 @@ namespace CrewChief.Events
                 {
                     if (isNewLap && currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
                     {
-                        if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed && currentState.CompletedLaps == tyreChangeLap)
+                        if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed &&
+                            currentState.PitWindowStatus != (int)Constant.PitWindow.SomeOtherCompletedStatus && 
+                            currentState.CompletedLaps == tyreChangeLap &&
+                            playPitThisLap)
                         {
                             playBoxNowMessage = true;
+                            playPitThisLap = false;
                             if (onOptions)
                             {
                                 audioPlayer.queueClip(folderMandatoryPitStopsOptionsToPrimes, 0, this);
@@ -188,57 +196,70 @@ namespace CrewChief.Events
                     }
                     else if (isNewLap && currentState.CompletedLaps > 0 && currentState.SessionTimeRemaining > 0)
                     {
-                        if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed && currentState.Player.GameSimulationTime > pitWindowOpenTime * 60 &&
+                        if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed &&
+                            currentState.PitWindowStatus != (int)Constant.PitWindow.SomeOtherCompletedStatus && 
+                            currentState.Player.GameSimulationTime > pitWindowOpenTime * 60 &&
                             currentState.Player.GameSimulationTime < pitWindowClosedTime * 60)
                         {
-                            double timeLeftToPit = pitWindowOpenTime * 60 - currentState.Player.GameSimulationTime;
-                            if (currentState.LapTimeBest > timeLeftToPit)
+                            double timeLeftToPit = pitWindowClosedTime * 60 - currentState.Player.GameSimulationTime;
+                            if (currentState.LapTimeBest > timeLeftToPit && playPitThisLap)
                             {
                                 // oh dear, we've probably missed the pit window.
                                 audioPlayer.queueClip(folderMandatoryPitStopsPitThisLapTooLate, 0, this);
                                 playBoxNowMessage = true;
+                                playPitThisLap = false;
                             }
-                            else if (currentState.LapTimeBest + 10 > timeLeftToPit || (currentState.LapTimeBest * 2) + 10 > timeLeftToPit)
+                            else if ((currentState.LapTimeBest + 10 > timeLeftToPit || (currentState.LapTimeBest * 2) + 10 > timeLeftToPit) &&
+                            playPitThisLap)
                             {
                                 // we probably won't make it round twice - pit at the end of this lap
                                 audioPlayer.queueClip(folderMandatoryPitStopsPitThisLap, 0, this);
                                 playBoxNowMessage = true;
+                                playPitThisLap = false;
                             }
                         }
                     }
-                    if (play2minOpenWarning && currentState.SessionTimeRemaining > 0 && currentState.Player.GameSimulationTime > (pitWindowOpenTime * 60) - 2)
+                    if (playOpenNow && currentState.SessionTimeRemaining > 0 &&
+                        (currentState.Player.GameSimulationTime > (pitWindowOpenTime * 60) || currentState.PitWindowStatus == (int)Constant.PitWindow.Open))
+                    {
+                        playOpenNow = false;
+                        play1minOpenWarning = false;
+                        play2minOpenWarning = false;
+                        audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen, 0, this);
+                    }                    
+                    else if (play1minOpenWarning && currentState.SessionTimeRemaining > 0 && currentState.Player.GameSimulationTime > ((pitWindowOpenTime - 1) * 60))
+                    {
+                        play1minOpenWarning = false;
+                        play2minOpenWarning = false;
+                        audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen1Min, 0, this);
+                    }
+                    else if (play2minOpenWarning && currentState.SessionTimeRemaining > 0 && currentState.Player.GameSimulationTime > ((pitWindowOpenTime - 2) * 60))
                     {
                         play2minOpenWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen2Min, 0, this);
                     }
-                    else if (play1minOpenWarning && currentState.SessionTimeRemaining > 0 && currentState.Player.GameSimulationTime > (pitWindowOpenTime * 60) - 1)
+                    else if (playClosedNow && currentState.SessionTimeRemaining > 0 &&
+                    (currentState.Player.GameSimulationTime > (pitWindowClosedTime * 60)))
                     {
-                        play1minOpenWarning = false;
-                        audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen1Min, 0, this);
+                        playClosedNow = false;
+                        playBoxNowMessage = false;
+                        play1minCloseWarning = false;
+                        play2minCloseWarning = false;
+                        playPitThisLap = false;
+                        audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosed, 0, this);
                     }
-                    else if (playOpenNow && currentState.SessionTimeRemaining > 0 && 
-                        (currentState.Player.GameSimulationTime > (pitWindowOpenTime * 60) || currentState.PitWindowStatus == (int) Constant.PitWindow.Open))
+                    else if (play1minCloseWarning && currentState.SessionTimeRemaining > 0 && currentState.Player.GameSimulationTime > ((pitWindowClosedTime - 1) * 60))
                     {
-                        playOpenNow = false;
-                        audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen, 0, this);
+                        play1minCloseWarning = false;
+                        play2minCloseWarning = false;
+                        audioPlayer.queueClip(folderMandatoryPitStopsPitWindowCloses1min, 0, this);
                     }
-                    else if (play2minCloseWarning && currentState.SessionTimeRemaining > 0 && currentState.Player.GameSimulationTime > (pitWindowOpenTime * 60) - 2)
+                    else if (play2minCloseWarning && currentState.SessionTimeRemaining > 0 && currentState.Player.GameSimulationTime > ((pitWindowClosedTime - 2)* 60))
                     {
                         play2minCloseWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowCloses2min, 0, this);
                     }
-                    else if (play1minCloseWarning && currentState.SessionTimeRemaining > 0 && currentState.Player.GameSimulationTime > (pitWindowOpenTime * 60) - 1)
-                    {
-                        play1minCloseWarning = false;
-                        audioPlayer.queueClip(folderMandatoryPitStopsPitWindowCloses1min, 0, this);
-                    }
-                    else if (playClosedNow && currentState.SessionTimeRemaining > 0 && 
-                        (currentState.Player.GameSimulationTime > (pitWindowOpenTime * 60)))
-                    {
-                        playClosedNow = false;
-                        playBoxNowMessage = false;
-                        audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosed, 0, this);
-                    }
+                                        
                     if (playBoxNowMessage && currentLapSector == 3)
                     {
                         audioPlayer.queueClip(folderMandatoryPitStopsPitNow, 0, this);

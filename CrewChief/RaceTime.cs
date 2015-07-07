@@ -90,20 +90,20 @@ namespace CrewChief.Events
                     }
                     audioPlayer.queueClip(folder5mins, 0, this, pearlType, 0.7);
                 }
-                if (currentState.Player.GameSimulationTime > 60 && !played10mins && currentState.SessionTimeRemaining / 60 < 10)
+                if (currentState.Player.GameSimulationTime > 60 && !played10mins && currentState.SessionTimeRemaining / 60 < 10 && currentState.SessionTimeRemaining / 60 > 9.9)
                 {
                     played10mins = true;
                     played15mins = true;
                     played20mins = true;
                     audioPlayer.queueClip(folder10mins, 0, this, pearlType, 0.7);
                 }
-                if (currentState.Player.GameSimulationTime > 60 && !played15mins && currentState.SessionTimeRemaining / 60 < 15)
+                if (currentState.Player.GameSimulationTime > 60 && !played15mins && currentState.SessionTimeRemaining / 60 < 15 && currentState.SessionTimeRemaining / 60 > 14.9)
                 {
                     played15mins = true;
                     played20mins = true;
                     audioPlayer.queueClip(folder15mins, 0, this, pearlType, 0.7);
                 }
-                if (currentState.Player.GameSimulationTime > 60 && !played20mins && currentState.SessionTimeRemaining / 60 < 20)
+                if (currentState.Player.GameSimulationTime > 60 && !played20mins && currentState.SessionTimeRemaining / 60 < 20 && currentState.SessionTimeRemaining / 60 > 19.9)
                 {
                     played20mins = true;
                     audioPlayer.queueClip(folder20mins, 0, this, pearlType, 0.7);

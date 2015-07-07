@@ -60,23 +60,25 @@ namespace CrewChief.Events
         }
 
         private void getCommonStateData(Shared lastState, Shared currentState)
-        {            
+        {
             isNewLap = isNew || (currentState.CompletedLaps > 0 && lastState.CompletedLaps < currentState.CompletedLaps);
-            isRaceStarted = currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int) Constant.Session.Race;
+            isRaceStarted = currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int)Constant.Session.Race;
             isSessionRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green;
 
-            // TODO: here we're assuming that when we start a new lap the sector deltas aren't zeroed If they
-            // are these if blocks should be 
-            //if (currentLapSector == 1 && lastState.SectorTimeDeltaSelf.Sector1 == 0 && currentState.SectorTimeDeltaSelf.Sector1 != 0)
-            if (isNewLap && currentLapSector != 1) {
+            if (isNewLap)
+            {
                 currentLapSector = 1;
-            } else if (currentLapSector == 1 && lastState.SectorTimeDeltaSelf.Sector1 != currentState.SectorTimeDeltaSelf.Sector1)
+            }
+            else if (currentLapSector == 1 &&
+                lastState.SectorTimeDeltaSelf.Sector1 != currentState.SectorTimeDeltaSelf.Sector1)
             {
                 currentLapSector = 2;
-            } else if (currentLapSector == 2 && lastState.SectorTimeDeltaSelf.Sector2 != currentState.SectorTimeDeltaSelf.Sector2) 
+            }
+            else if (currentLapSector == 2 &&
+                lastState.SectorTimeDeltaSelf.Sector2 != currentState.SectorTimeDeltaSelf.Sector2)
             {
                 currentLapSector = 3;
-            } 
+            }
         }
     }
 }
