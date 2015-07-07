@@ -89,6 +89,7 @@ namespace CrewChief.Events
                 {
                     Console.WriteLine("Race finished but position is 0");
                 }
+                playedFinished = true;
             }
             if (isRaceStarted && isNewLap && currentState.NumberOfLaps > 0) {
                 // a new lap has been started in race mode

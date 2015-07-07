@@ -236,6 +236,7 @@ namespace CrewChief.Events
                         (currentState.Player.GameSimulationTime > (pitWindowOpenTime * 60)))
                     {
                         playClosedNow = false;
+                        playBoxNowMessage = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosed, 0, this);
                     }
                     if (playBoxNowMessage && currentLapSector == 3)
