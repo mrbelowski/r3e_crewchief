@@ -18,8 +18,11 @@ namespace CrewChief.Events
         private String folder15mins = "race_time/fifteen_minutes_left";
         private String folder20mins = "race_time/twenty_minutes_left";
         private String folderHalfWayHome = "race_time/half_way";
+        private String folderLastLap = "race_time/last_lap";
+        private String folderLastLapLeading = "race_time/last_lap_leading";
+        private String folderLastLapPodium = "race_time/last_lap_top_three";
 
-        private Boolean played5mins, played10mins, played15mins, played20mins, playedHalfWayHome;
+        private Boolean played5mins, played10mins, played15mins, played20mins, playedHalfWayHome, playedLastLap;
 
         private float halfTime;
 
@@ -32,7 +35,8 @@ namespace CrewChief.Events
 
         protected override void clearStateInternal()
         {
-            played5mins = false; played10mins = false; played15mins = false; played20mins = false; playedHalfWayHome = false;
+            played5mins = false; played10mins = false; played15mins = false;
+            played20mins = false; playedHalfWayHome = false; playedLastLap = false ;
             halfTime = 0;
             gotHalfTime = false;
         }
@@ -71,8 +75,10 @@ namespace CrewChief.Events
                     }                
                 }
 
-                if (currentState.Player.GameSimulationTime > 60 && !played5mins && currentState.SessionTimeRemaining / 60 < 5)
+                if (isRaceStarted && currentState.Player.GameSimulationTime > 60 && !playedLastLap &&
+                    currentState.SessionTimeRemaining / 60 < currentState.LapTimeBest + 5)
                 {
+                    playedLastLap = true;
                     played5mins = true;
                     played10mins = true;
                     played15mins = true;
@@ -81,14 +87,39 @@ namespace CrewChief.Events
                     if (currentState.Position == 1)
                     {
                         // don't add a pearl here - the audio clip already contains encouragement
-                        audioPlayer.queueClip(folder5minsLeading, 0, this, pearlType, 0);
-                    } 
+                        audioPlayer.queueClip(folderLastLapLeading, 0, this, pearlType, 0);
+                    }
                     else if (currentState.Position < 4)
+                    {
+                        // don't add a pearl here - the audio clip already contains encouragement
+                        audioPlayer.queueClip(folderLastLapPodium, 0, this, pearlType, 0);
+                    }
+                    else
+                    {
+                        audioPlayer.queueClip(folderLastLap, 0, this, pearlType, 0.7);
+                    }
+                } if (currentState.Player.GameSimulationTime > 60 && !played5mins &&
+                    currentState.SessionTimeRemaining / 60 < 5)
+                {
+                    played5mins = true;
+                    played10mins = true;
+                    played15mins = true;
+                    played20mins = true;
+                    playedHalfWayHome = true;
+                    if (isRaceStarted && currentState.Position == 1)
+                    {
+                        // don't add a pearl here - the audio clip already contains encouragement
+                        audioPlayer.queueClip(folder5minsLeading, 0, this, pearlType, 0);
+                    }
+                    else if (isRaceStarted && currentState.Position < 4)
                     {
                         // don't add a pearl here - the audio clip already contains encouragement
                         audioPlayer.queueClip(folder5minsPodium, 0, this, pearlType, 0);
                     }
-                    audioPlayer.queueClip(folder5mins, 0, this, pearlType, 0.7);
+                    else
+                    {
+                        audioPlayer.queueClip(folder5mins, 0, this, pearlType, 0.7);
+                    }
                 }
                 if (currentState.Player.GameSimulationTime > 60 && !played10mins && currentState.SessionTimeRemaining / 60 < 10 && currentState.SessionTimeRemaining / 60 > 9.9)
                 {

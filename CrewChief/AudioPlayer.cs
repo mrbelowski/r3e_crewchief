@@ -14,7 +14,7 @@ namespace CrewChief
     {
         private Dictionary<String, List<SoundPlayer>> clips = new Dictionary<String, List<SoundPlayer>>();
 
-        private int queueMonitorInterval = 100;
+        private int queueMonitorInterval = 1000;
 
         private String soundFolderName = Properties.Settings.Default.sound_files_path;
 

@@ -58,10 +58,11 @@ namespace CrewChief.Events
                 (lastState.ControlType ==(int) Constant.Control.AI && currentState.ControlType == (int) Constant.Control.Player && 
                 currentState.Player.GameSimulationTime < 20))
             {
-                audioPlayer.queueClip(folderGreenGreenGreen, 0, this);
+                audioPlayer.playClipImmediately(folderGreenGreenGreen);
                 playedGreenGreenGreen = true;
             }
-            if (!playedFinished && currentState.Player.GameSimulationTime > 60 && currentState.SessionPhase == (int)Constant.SessionPhase.Checkered) 
+            if (!playedFinished && isNewLap && currentState.Player.GameSimulationTime > 60 && 
+                currentState.SessionPhase == (int)Constant.SessionPhase.Checkered) 
             {
                 int position = currentState.Position;
                 if (lastState.Position !=  0 && lastState.Position != position)
