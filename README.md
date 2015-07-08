@@ -23,7 +23,7 @@ For version 1.3 I've added engine temperature monitoring, but there's an issue i
 
 For version 1.4 there are now semi-random pearls of wisdom / helpful advice / annoying patronising nonsense added to some messages. Hopefully these aren't intrusive or too regular (or too embarrassing)
 
-For version 1.6 there are lots of new things but it's mostly filling in the blanks now the memory block is more complete.
+For version 1.6 there are lots of new things but it's mostly filling in the blanks now the memory block is more complete. There are also optional 'sweary' messages - nothing too excessive (just stuff like "aww shit, we just had a penalty"). Set the CrewChief.exe.config "use_sweary_messages" to False if you don't like them
 
 
 Changes
