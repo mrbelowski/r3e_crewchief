@@ -50,8 +50,6 @@ namespace CrewChief.Events
 
         private int tyreChangeLap;
 
-        private int tyreChangeTime;
-
         private Boolean playBoxNowMessage;
 
         private Boolean playOpenNow;
@@ -83,7 +81,6 @@ namespace CrewChief.Events
             onOptions = false;
             onPrimes = false;
             tyreChangeLap = 0;
-            tyreChangeTime = 0;
             playBoxNowMessage = false;
             play2minOpenWarning = false;
             play2minCloseWarning = false;

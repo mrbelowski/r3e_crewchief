@@ -39,11 +39,7 @@ namespace CrewChief.Events
 
         private float halfTime;
 
-        private Boolean playedThreeQuarterTankWarning;
-
         private Boolean playedHalfTankWarning;
-
-        private Boolean playedQuarterTankWarning;
 
         private Boolean initialised;
 
@@ -74,9 +70,7 @@ namespace CrewChief.Events
             fuelAfter15Seconds = 0;
             averageUsagePerLap = 0;
             halfDistance = 0;
-            playedThreeQuarterTankWarning = false;
             playedHalfTankWarning = false;
-            playedQuarterTankWarning = false;
             initialised = false;
             halfTime = 0;
             playedHalfTimeFuelEstimate = false;

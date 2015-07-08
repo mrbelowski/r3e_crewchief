@@ -146,12 +146,12 @@ namespace CrewChief.Events
                 }
                 else if (!playedPitNow && currentLapSector == 3 && hasStopGo(currentState) && lapsCompleted - penaltyLap == 2)
                 {
-                    playedPitNow = false;
+                    playedPitNow = true;
                     audioPlayer.queueClip(folderPitNowStopGo, 0, this);
                 }
                 else if (!playedPitNow && currentLapSector == 3 && hasDriveThrough(currentState) && lapsCompleted - penaltyLap == 2)
                 {
-                    playedPitNow = false;
+                    playedPitNow = true;
                     audioPlayer.queueClip(folderPitNowDriveThrough, 0, this);
                 }
             } else  {

@@ -61,11 +61,10 @@ namespace CrewChief.Events
                 audioPlayer.queueClip(folderGreenGreenGreen, 0, this);
                 playedGreenGreenGreen = true;
             }
-            if (!playedFinished && currentState.Player.GameSimulationTime > 60 &&
-                lastState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionPhase == (int)Constant.SessionPhase.Checkered) 
+            if (!playedFinished && currentState.Player.GameSimulationTime > 60 && currentState.SessionPhase == (int)Constant.SessionPhase.Checkered) 
             {
                 int position = currentState.Position;
-                if (lastState.Position != position)
+                if (lastState.Position !=  0 && lastState.Position != position)
                 {
                     Console.WriteLine("At end of race, position has changed...");
                     if (position + 1 > lastState.Position)

@@ -17,15 +17,10 @@ using CrewChief.Data;
 // I'd expect to be seeing water temperatures in the 80s for 'normal' running, with this getting well into the 
 // 90s or 100s in traffic. The oil temps should be 100+, maybe hitting 125 or more when the water's also hot.
 // 
-// The warning thresholds in the config file have to take this apparent inaccuracy into account, so I've
-// assumed the water temps are really about 30 degrees hotter than the reported temps. So the water 'hot' warning
-// threshold is at 65. As the oil temps seem too close to water temps in the sim, I've assumed the real oil
-// temps are about 50 degrees hotter than the reported temps, so the oil 'hot' threshold is at 70.
-// 
-// These values aren't realistic and the warnings generated should be taken with a pinch of salt. They 
-// sound cool, but you're not likely to blow your engine if the temps are in the 70s. If I used realistic
-// values for these thresholds you'd *never* hear the warnings. Ever. When S3 addresses the underlying issue
-// these thresholds can be set to something more realistic
+// To work around this I take a 'baseline' temp for oil and water - this is the average temperature between 2
+// and 4 minutes of the session. I then look at differences between this baseline and the current temperature, allowing
+// a configurable 'max above baseline' for each. Assuming the base line temps are sensible (say, 85 for water 105 for oil), 
+// then anthing over 95 for water and 120 for oil is 'bad' - the numbers in the config reflect this
 
 namespace CrewChief.Events
 {
@@ -37,8 +32,8 @@ namespace CrewChief.Events
         private String folderHotOilAndWater = "engine_monitor/hot_oil_and_water";
         private String folderLowOilPressure = "engine_monitor/low_oil_pressure";
 
-        private static float maxSafeWaterTemp = Properties.Settings.Default.max_safe_water_temp;
-        private static float maxSafeOilTemp = Properties.Settings.Default.max_safe_oil_temp;
+        private static float maxSafeWaterTempOverBaseline = Properties.Settings.Default.max_safe_water_temp_over_baseline;
+        private static float maxSafeOilTempOverBaseline = Properties.Settings.Default.max_safe_oil_temp_over_baseline;
         private static Boolean logTemps = Properties.Settings.Default.log_temps;
 
         double lastDataPointGameTime;
@@ -52,6 +47,19 @@ namespace CrewChief.Events
 
         double gameTimeAtLastStatusCheck;
 
+        Boolean gotBaseline;
+
+        int baselineSamples;
+        
+        // record the average temperature between minutes 2 and 3
+        double baselineStartSeconds = 120;
+
+        double baselineFinishSeconds = 180;
+
+        float baselineOilTemp;
+
+        float baselineWaterTemp;
+
         public EngineMonitor(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -63,6 +71,10 @@ namespace CrewChief.Events
             lastStatusMessage = EngineStatus.ALL_CLEAR;
             engineData = new EngineData();
             gameTimeAtLastStatusCheck = 0;
+            gotBaseline = false;
+            baselineSamples = 0;
+            baselineOilTemp = 0;
+            baselineWaterTemp = 0;    
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -78,10 +90,25 @@ namespace CrewChief.Events
                 {
                     clearStateInternal();
                 }
-                if (currentState.Player.GameSimulationTime > gameTimeAtLastStatusCheck + statusMonitorWindowLength)
+                if (!gotBaseline)
                 {
-                    // we have 30 seconds of engine data, so check it and reset it
-                    EngineStatus currentEngineStatus = engineData.getEngineStatus();
+                    if (currentState.Player.GameSimulationTime > baselineStartSeconds && currentState.Player.GameSimulationTime < baselineFinishSeconds)
+                    {
+                        baselineSamples++;
+                        baselineWaterTemp += currentState.EngineWaterTemp;
+                        baselineOilTemp += currentState.EngineOilTemp;
+                    }
+                    else if (currentState.Player.GameSimulationTime >= baselineFinishSeconds)
+                    {
+                        gotBaseline = true;
+                        baselineOilTemp = baselineOilTemp / baselineSamples;
+                        baselineWaterTemp = baselineWaterTemp / baselineSamples;
+                        Console.WriteLine("Got baseline engine temps, water = " + baselineWaterTemp + ", oil = " + baselineOilTemp);
+                    }
+                }
+                if (gotBaseline && currentState.Player.GameSimulationTime > gameTimeAtLastStatusCheck + statusMonitorWindowLength)
+                {
+                    EngineStatus currentEngineStatus = engineData.getEngineStatus(baselineOilTemp, baselineWaterTemp);
                     if (currentEngineStatus != lastStatusMessage)
                     {
                         switch (currentEngineStatus)
@@ -152,21 +179,21 @@ namespace CrewChief.Events
                 this.waterTemp += currentData.EngineWaterTemp;
                 this.oilPressure += currentData.EngineOilPressure;
             }
-            public EngineStatus getEngineStatus()
+            public EngineStatus getEngineStatus(float baselineOilTemp, float baselineWaterTemp)
             {
                 // TODO: detect a sudden drop in oil pressure without triggering false positives caused by stalling the engine
                 float averageOilTemp = oilTemp / samples;
                 float averageWaterTemp = waterTemp / samples;
                 float averageOilPressure = oilPressure / samples;
-                if (averageOilTemp > maxSafeOilTemp && averageWaterTemp > maxSafeWaterTemp)
+                if (averageOilTemp > baselineOilTemp + maxSafeOilTempOverBaseline && averageWaterTemp > baselineWaterTemp + maxSafeWaterTempOverBaseline)
                 {
                     return EngineStatus.HOT_OIL_AND_WATER;
                 }
-                else if (averageWaterTemp > maxSafeWaterTemp)
+                else if (averageWaterTemp > baselineWaterTemp + maxSafeWaterTempOverBaseline)
                 {
                     return EngineStatus.HOT_WATER;
                 }
-                else if (averageOilTemp > maxSafeOilTemp)
+                else if (averageOilTemp > baselineOilTemp + maxSafeOilTempOverBaseline)
                 {
                     return EngineStatus.HOT_OIL;
                 }
@@ -174,7 +201,7 @@ namespace CrewChief.Events
                 {
                     return EngineStatus.ALL_CLEAR;
                 }
-                // low oil pressure not (yet) implemented
+                // low oil pressure not implemented
             }
         }
 

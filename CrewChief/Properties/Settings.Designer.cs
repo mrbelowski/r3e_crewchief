@@ -79,28 +79,10 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("95")]
+        [global::System.Configuration.DefaultSettingValueAttribute("99")]
         public float max_good_tyre_temp {
             get {
                 return ((float)(this["max_good_tyre_temp"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("76")]
-        public float max_safe_oil_temp {
-            get {
-                return ((float)(this["max_safe_oil_temp"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("72")]
-        public float max_safe_water_temp {
-            get {
-                return ((float)(this["max_safe_water_temp"]));
             }
         }
         
@@ -137,6 +119,24 @@ namespace CrewChief.Properties {
         public float pearls_of_wisdom_likelihood {
             get {
                 return ((float)(this["pearls_of_wisdom_likelihood"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public float max_safe_water_temp_over_baseline {
+            get {
+                return ((float)(this["max_safe_water_temp_over_baseline"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        public float max_safe_oil_temp_over_baseline {
+            get {
+                return ((float)(this["max_safe_oil_temp_over_baseline"]));
             }
         }
     }
