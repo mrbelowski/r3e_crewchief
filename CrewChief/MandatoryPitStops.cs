@@ -122,6 +122,7 @@ namespace CrewChief.Events
                             onPrimes = true;
                             tyreChangeLap = (int)Math.Floor((double)currentState.NumberOfLaps / 2d);
                         }
+                        playPitThisLap = true;
                     }
                     else if (currentState.SessionTimeRemaining > 0)
                     {
