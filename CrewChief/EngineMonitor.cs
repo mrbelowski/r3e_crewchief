@@ -17,8 +17,8 @@ using CrewChief.Data;
 // I'd expect to be seeing water temperatures in the 80s for 'normal' running, with this getting well into the 
 // 90s or 100s in traffic. The oil temps should be 100+, maybe hitting 125 or more when the water's also hot.
 // 
-// To work around this I take a 'baseline' temp for oil and water - this is the average temperature between 2
-// and 4 minutes of the session. I then look at differences between this baseline and the current temperature, allowing
+// To work around this I take a 'baseline' temp for oil and water - this is the average temperature between 3
+// and 5 minutes of the session. I then look at differences between this baseline and the current temperature, allowing
 // a configurable 'max above baseline' for each. Assuming the base line temps are sensible (say, 85 for water 105 for oil), 
 // then anthing over 95 for water and 120 for oil is 'bad' - the numbers in the config reflect this
 
@@ -49,10 +49,10 @@ namespace CrewChief.Events
 
         int baselineSamples;
         
-        // record the average temperature between minutes 2 and 4
-        double baselineStartSeconds = 120;
+        // record the average temperature between minutes 3 and 5
+        double baselineStartSeconds = 180;
 
-        double baselineFinishSeconds = 240;
+        double baselineFinishSeconds = 300;
 
         float baselineOilTemp;
 
@@ -81,7 +81,7 @@ namespace CrewChief.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (isSessionRunning)
+            if (isRaceStarted)
             {
                 if (engineData == null)
                 {
