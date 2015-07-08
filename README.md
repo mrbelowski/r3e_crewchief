@@ -28,6 +28,8 @@ For version 1.6 there are lots of new things but it's mostly filling in the blan
 
 Changes
 -------
+Version 1.7: Fixed race end logic so the messages only fire when you cross the line; reduced queue check frequency to prevent multiple queued messages being broken up (extra beeps in between); added last lap events to timed races
+
 Version 1.6: The version includes lots of stuff that wasn't previously possible, now S3 have added more things to the shared memory block. There's still more to come (like monitoring the gaps and relative laptimes, damage monitoring, tyre wear and pressure monitoring etc).
 
 Added pit window events for timed races - this also includes an estimate of when you need to pit so you will get a 'pit on this lap' message if it's near the end of the pit window, and a 'box now' message when you hit sector 3 on that lap; Added tyre-specific pit messages for DTM 2014 ('change to primes'); Revised race time stuff so it now tells you how long you have left in the race (if time left <= 20 mins); Revised penalties so they now include what type the penalty is; Added time penalty message and 'box now' message; Added 'green green green' to start and race finished events to all race types; Don't add pearls of wisdom to non-race sessions for some events; Reworked fuel use monitor; Reworked engine temps monitor so it now compares temps to baseline temps established early in the race (race only); Various other fixes and, no doubt, new bugs
