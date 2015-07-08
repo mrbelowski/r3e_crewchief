@@ -139,5 +139,14 @@ namespace CrewChief.Properties {
                 return ((float)(this["max_safe_oil_temp_over_baseline"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool use_sweary_messages {
+            get {
+                return ((bool)(this["use_sweary_messages"]));
+            }
+        }
     }
 }

@@ -24,6 +24,8 @@ namespace CrewChief
 
         private readonly TimeSpan minTimeBetweenPearlsOfWisdom = TimeSpan.FromSeconds(Properties.Settings.Default.minimum_time_between_pearls_of_wisdom);
 
+        private Boolean sweary = Properties.Settings.Default.use_sweary_messages;
+
         private Random random = new Random();
     
         private Dictionary<String, QueueObject> queuedClips = new Dictionary<String, QueueObject>();
@@ -130,7 +132,7 @@ namespace CrewChief
                                 FileInfo[] soundFiles = eventDetailFolder.GetFiles();
                                 foreach (FileInfo soundFile in soundFiles)
                                 {
-                                    if (soundFile.Name.EndsWith(".wav"))
+                                    if (soundFile.Name.EndsWith(".wav") && (sweary || !soundFile.Name.StartsWith("sweary")))
                                     {
                                         Console.WriteLine("Got sound file " + soundFile.FullName);
                                         openAndCacheClip(eventFolder + "/" + eventDetailFolder, soundFile.FullName);
