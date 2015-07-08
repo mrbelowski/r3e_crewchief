@@ -31,6 +31,8 @@ namespace CrewChief.Events
 
         private String folderPitNowDriveThrough = "penalties/pit_now_drive_through";
 
+        private String folderTimePenalty = "penalties/time_penalty";
+
         private int penaltyLap;
 
         private int lapsCompleted;
@@ -38,6 +40,8 @@ namespace CrewChief.Events
         private Boolean playedPitNow;
 
         private Boolean hasOutstandingPenalty = false;
+
+        private Boolean playedTimePenaltyMessage;
 
         public Penalties(AudioPlayer audioPlayer) {
             this.audioPlayer = audioPlayer;
@@ -54,6 +58,7 @@ namespace CrewChief.Events
             // remove this message from the queue
             audioPlayer.removeQueuedClip(folderThreeLapsToServe);
             playedPitNow = false;
+            playedTimePenaltyMessage = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -90,9 +95,14 @@ namespace CrewChief.Events
         {
             return currentState.Penalties.StopAndGo > 0;
         }
+
+        private Boolean hasTimePenalty(Shared currentState)
+        {
+            return currentState.Penalties.TimeDeduction > 0;
+        }
     
         override protected void triggerInternal(Shared lastState, Shared currentState) {
-            if (isRaceStarted && hasDriveThrough(currentState) || hasStopGo(currentState)) 
+            if (isRaceStarted && hasDriveThrough(currentState) || hasStopGo(currentState) || hasTimePenalty(currentState)) 
             {
                 if (hasNewDriveThrough(lastState, currentState)) {
                     lapsCompleted = currentState.CompletedLaps;
@@ -121,7 +131,7 @@ namespace CrewChief.Events
                     }
                     hasOutstandingPenalty = true;
                 }
-                else if (isNewLap)
+                else if (isNewLap && (hasDriveThrough(currentState) || hasStopGo(currentState)))
                 {
                     lapsCompleted = currentState.CompletedLaps;
                     if (lapsCompleted - penaltyLap == 3)
@@ -153,6 +163,11 @@ namespace CrewChief.Events
                 {
                     playedPitNow = true;
                     audioPlayer.queueClip(folderPitNowDriveThrough, 0, this);
+                }
+                else if (!playedTimePenaltyMessage && hasTimePenalty(currentState))
+                {
+                    playedTimePenaltyMessage = true;
+                    audioPlayer.queueClip(folderTimePenalty, 0, this);
                 }
             } else  {
                 clearStateInternal();
