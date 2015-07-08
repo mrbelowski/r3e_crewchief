@@ -148,8 +148,8 @@ namespace CrewChief.Events
                 {
                     if (isNewLap && currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
                     {
-                        if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed &&
-                            currentState.PitWindowStatus != (int)Constant.PitWindow.SomeOtherCompletedStatus && 
+                        if (currentState.PitWindowStatus != (int)Constant.PitWindow.StopInProgress &&
+                            currentState.PitWindowStatus != (int)Constant.PitWindow.Completed && 
                             currentState.CompletedLaps == tyreChangeLap &&
                             playPitThisLap)
                         {
@@ -161,7 +161,7 @@ namespace CrewChief.Events
                             }
                             else if (onPrimes)
                             {
-                                audioPlayer.queueClip(folderMandatoryPitStopsOptionsToPrimes, 0, this);
+                                audioPlayer.queueClip(folderMandatoryPitStopsPrimesToOptions, 0, this);
                             }
                             else
                             {
@@ -196,8 +196,8 @@ namespace CrewChief.Events
                     }
                     else if (isNewLap && currentState.CompletedLaps > 0 && currentState.SessionTimeRemaining > 0)
                     {
-                        if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed &&
-                            currentState.PitWindowStatus != (int)Constant.PitWindow.SomeOtherCompletedStatus && 
+                        if (currentState.PitWindowStatus != (int)Constant.PitWindow.StopInProgress &&
+                            currentState.PitWindowStatus != (int)Constant.PitWindow.Completed && 
                             currentState.Player.GameSimulationTime > pitWindowOpenTime * 60 &&
                             currentState.Player.GameSimulationTime < pitWindowClosedTime * 60)
                         {

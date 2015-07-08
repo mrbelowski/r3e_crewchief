@@ -26,10 +26,16 @@ namespace CrewChief.Events
         private String folderOneLapToServeDriveThrough = "penalties/penalty_one_lap_left_drivethrough";
 
         private String folderDisqualified = "penalties/penalty_disqualified";
-            
+
+        private String folderPitNowStopGo = "penalties/pit_now_stop_go";
+
+        private String folderPitNowDriveThrough = "penalties/pit_now_drive_through";
+
         private int penaltyLap;
 
         private int lapsCompleted;
+
+        private Boolean playedPitNow;
 
         private Boolean hasOutstandingPenalty = false;
 
@@ -47,6 +53,7 @@ namespace CrewChief.Events
             // message would be in the queue and would be made valid again, so would play. So we explicity 
             // remove this message from the queue
             audioPlayer.removeQueuedClip(folderThreeLapsToServe);
+            playedPitNow = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -136,6 +143,16 @@ namespace CrewChief.Events
                     {
                         audioPlayer.queueClip(folderTwoLapsToServe, pitstopDelay, this);
                     }
+                }
+                else if (!playedPitNow && currentLapSector == 3 && hasStopGo(currentState) && lapsCompleted - penaltyLap == 2)
+                {
+                    playedPitNow = false;
+                    audioPlayer.queueClip(folderPitNowStopGo, 0, this);
+                }
+                else if (!playedPitNow && currentLapSector == 3 && hasDriveThrough(currentState) && lapsCompleted - penaltyLap == 2)
+                {
+                    playedPitNow = false;
+                    audioPlayer.queueClip(folderPitNowDriveThrough, 0, this);
                 }
             } else  {
                 clearStateInternal();

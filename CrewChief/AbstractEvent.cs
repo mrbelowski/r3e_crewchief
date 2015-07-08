@@ -20,6 +20,8 @@ namespace CrewChief.Events
 
         protected PearlsOfWisdom pearlsOfWisdom;
 
+        protected Boolean isLast;
+
         // note this will be -1 if we don't actually know what sector we're in
         protected int currentLapSector;
 
@@ -40,6 +42,7 @@ namespace CrewChief.Events
             isNew = true;
             clearStateInternal();
             currentLapSector = -1;
+            isLast = false;
         }
 
         public void setPearlsOfWisdom(PearlsOfWisdom pearlsOfWisdom)
@@ -79,6 +82,8 @@ namespace CrewChief.Events
             {
                 currentLapSector = 3;
             }
+
+            isLast = currentState.Position == currentState.NumCars;
         }
     }
 }

@@ -67,11 +67,11 @@ namespace CrewChief.Events
                         PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.NONE;
                         if (isRaceStarted)
                         {
-                            if (previousPosition > currentState.Position + 5 || (previousPosition > currentState.Position && currentState.Position <= 5))
+                            if (!isLast && (previousPosition > currentState.Position + 5 || (previousPosition > currentState.Position && currentState.Position <= 5)))
                             {
                                 pearlType = PearlsOfWisdom.PearlType.GOOD;
                             }
-                            else if (previousPosition < currentState.Position && currentState.Position > 5)
+                            else if (!isLast && previousPosition < currentState.Position && currentState.Position > 5)
                             {
                                 pearlType = PearlsOfWisdom.PearlType.BAD;
                             }
@@ -124,13 +124,13 @@ namespace CrewChief.Events
                             PearlsOfWisdom.enablePearlsOfWisdom && 
                             !p10orBetter && new Random().NextDouble() > 0.5 * PearlsOfWisdom.pearlsLikelihood)
                         {
-                            if (positionAtLastP10OrWorseMessage > currentState.Position + 5)
+                            if (!isLast && positionAtLastP10OrWorseMessage > currentState.Position + 5)
                             {
                                 // made up 5 places since last message
                                 audioPlayer.queueClip(PearlsOfWisdom.folderKeepItUp, 0, this);
                                 positionAtLastP10OrWorseMessage = currentState.Position;
                             }
-                            else if (positionAtLastP10OrWorseMessage < currentState.Position - 1)
+                            else if (isLast || positionAtLastP10OrWorseMessage < currentState.Position - 1)
                             {
                                 // lost 2 or more places since last message
                                 audioPlayer.queueClip(PearlsOfWisdom.folderMustDoBetter, 0, this);

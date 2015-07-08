@@ -41,10 +41,8 @@ namespace CrewChief
             Disabled = 0,
             Closed = 1,
             Open = 2,
-            Completed = 3,
-            SomeOtherCompletedStatus = 4
-            // part way through a mandatory ADAC 2014 driver change, this value
-            // changes to 4. No idea why...
+            StopInProgress = 3,
+            Completed = 4
         }
 
         public enum TireType

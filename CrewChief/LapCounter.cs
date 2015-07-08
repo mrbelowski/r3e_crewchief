@@ -30,6 +30,8 @@ namespace CrewChief.Events
 
         private String folderFinishedRace = "lap_counter/finished_race";
 
+        private String folderFinishedRaceLast = "lap_counter/finished_race_last";
+
         Boolean playedGreenGreenGreen;
 
         Boolean playedFinished;
@@ -85,9 +87,13 @@ namespace CrewChief.Events
                 {
                     audioPlayer.queueClip(folderPodiumFinish, 0, this);
                 }
-                else if (position >= 4)
+                else if (position >= 4 && !isLast)
                 {
                     audioPlayer.queueClip(folderFinishedRace, 0, this);
+                }
+                else if (isLast)
+                {
+                    audioPlayer.queueClip(folderFinishedRaceLast, 0, this);
                 }
                 else
                 {

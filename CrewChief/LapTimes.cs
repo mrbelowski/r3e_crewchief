@@ -95,7 +95,7 @@ namespace CrewChief.Events
                         if (consistency == ConsistencyResult.WORSENING)
                         {
                             lastConsistencyUpdate = currentState.CompletedLaps;
-                            audioPlayer.queueClip(folderWorseningTimes, 0, this, PearlsOfWisdom.PearlType.BAD, 0.5);
+                            audioPlayer.queueClip(folderWorseningTimes, 0, this);
                         }
                     }
                     else if (currentState.LapTimePrevious - (currentState.LapTimePrevious * goodLapPercent / 100) < currentState.LapTimeBest)
