@@ -200,15 +200,14 @@ namespace CrewChief.Events
                             currentState.Player.GameSimulationTime < pitWindowClosedTime * 60)
                         {
                             double timeLeftToPit = pitWindowClosedTime * 60 - currentState.Player.GameSimulationTime;
-                            if (currentState.LapTimeBest > timeLeftToPit && playPitThisLap)
+                            if (playPitThisLap && currentState.LapTimeBest + 10 > timeLeftToPit)
                             {
-                                // oh dear, we've probably missed the pit window.
+                                // oh dear, we might have missed the pit window.
                                 audioPlayer.queueClip(folderMandatoryPitStopsPitThisLapTooLate, 0, this);
                                 playBoxNowMessage = true;
                                 playPitThisLap = false;
                             }
-                            else if ((currentState.LapTimeBest + 10 > timeLeftToPit || (currentState.LapTimeBest * 2) + 10 > timeLeftToPit) &&
-                            playPitThisLap)
+                            else if (currentState.LapTimeBest + 10 < timeLeftToPit && (currentState.LapTimeBest * 2) + 10 > timeLeftToPit)
                             {
                                 // we probably won't make it round twice - pit at the end of this lap
                                 audioPlayer.queueClip(folderMandatoryPitStopsPitThisLap, 0, this);
