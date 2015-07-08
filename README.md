@@ -22,6 +22,10 @@ For version 1.2, the tyre temp thresholds are a bit of a guess. In DTM 2014, WTC
 For version 1.3 I've added engine temperature monitoring, but there's an issue in the game with this. The reported in-game temps are very low, like the radiator is far too effective. I've used unrealistic warning thresholds just so the warning messages will trigger occasionally.
 
 For version 1.4 there are now semi-random pearls of wisdom / helpful advice / annoying patronising nonsense added to some messages. Hopefully these aren't intrusive or too regular (or too embarrassing)
+
+For version 1.6 there are lots of new things but it's mostly filling in the blanks now the memory block is more complete.
+
+
 Changes
 -------
 Version 1.6: The version includes lots of stuff that wasn't previously possible, now S3 have added more things to the shared memory block. There's still more to come (like monitoring the gaps and relative laptimes, damage monitoring, tyre wear and pressure monitoring etc).
