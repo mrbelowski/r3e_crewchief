@@ -75,8 +75,8 @@ namespace CrewChief.Events
                     }                
                 }
 
-                if (isRaceStarted && currentState.Player.GameSimulationTime > 60 && !playedLastLap &&
-                    currentState.SessionTimeRemaining < currentState.LapTimeBest - 5)
+                if (isRaceStarted && isNewLap && currentState.Player.GameSimulationTime > 60 && !playedLastLap &&
+                    currentState.SessionTimeRemaining < currentState.LapTimeBest)
                 {
                     playedLastLap = true;
                     played5mins = true;

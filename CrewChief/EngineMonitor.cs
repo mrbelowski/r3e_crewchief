@@ -95,7 +95,7 @@ namespace CrewChief.Events
                         baselineWaterTemp += currentState.EngineWaterTemp;
                         baselineOilTemp += currentState.EngineOilTemp;
                     }
-                    else if (currentState.Player.GameSimulationTime >= baselineFinishSeconds)
+                    else if (currentState.Player.GameSimulationTime >= baselineFinishSeconds && baselineSamples > 0)
                     {
                         gotBaseline = true;
                         baselineOilTemp = baselineOilTemp / baselineSamples;

@@ -86,12 +86,14 @@ namespace CrewChief.Events
                     {
                         gapsInFront.Insert(0, currentState.TimeDeltaFront);
                         gapInFrontStatus = getGapStatus(gapsInFront, gapInFrontAtLastReport);
+                        Console.WriteLine("Gap front " + gapInFrontStatus + ", " + gapsInFront[0]);
                     }
 
                     if (!isLast)
                     {
                         gapsBehind.Insert(0, currentState.TimeDeltaBehind);
                         gapBehindStatus = getGapStatus(gapsBehind, gapBehindAtLastReport);
+                        Console.WriteLine("Gap behind " + gapBehindStatus + ", " + gapsBehind[0]);
                     }
 
                     // Play which ever is the smaller gap, but we're not interested if the gap is < 0.5 or > 20 seconds or hasn't changed:
@@ -100,7 +102,7 @@ namespace CrewChief.Events
 
                     Boolean playGapBehind = !playGapInFront && gapBehindStatus != GapStatus.NONE && gapBehindStatus != GapStatus.CONSTANT;
 
-                    if (playGapInFront && sectorsSinceLastReport > sectorsUntilNextReport)
+                    if (playGapInFront && sectorsSinceLastReport >= sectorsUntilNextReport)
                     {
                         sectorsSinceLastReport = 0;
                         // here we report on gaps semi-randomly, we'll see how this sounds...
@@ -194,7 +196,7 @@ namespace CrewChief.Events
             // we don't want to report anything
 
             // when comparing gaps round to 1 decimal place
-            if (gaps.Count < 2 || gaps[0] > 20 || Math.Abs(gaps[0] - gaps[1]) > 5)
+            if (gaps[0] == -1 || gaps.Count < 2 || gaps[0] > 20 || Math.Abs(gaps[0] - gaps[1]) > 5)
             {
                 return GapStatus.NONE;
             }
