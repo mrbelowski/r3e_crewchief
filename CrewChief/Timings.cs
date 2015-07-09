@@ -145,7 +145,7 @@ namespace CrewChief.Events
                     pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
                 }
                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings",
-                    new QueuedMessage(folderLapTimeStart, folderSeconds, TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this), pearlType, 0.5);
+                    new QueuedMessage(folderLapTimeStart, null, TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this), pearlType, 0.5);
             }
         }
 
