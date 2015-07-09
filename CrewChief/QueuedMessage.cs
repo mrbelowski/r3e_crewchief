@@ -92,6 +92,12 @@ namespace CrewChief
             List<String> messages = new List<String>();
             if (timeSpan != null)
             {
+                // if the milliseconds would is > 949, when we turn this into tenths it'll get rounded up to 
+                // ten tenths, which we can't have. So move the timespan on so this rounding doesn't happen
+                if (timeSpan.Milliseconds > 949)
+                {
+                    timeSpan = timeSpan.Add(TimeSpan.FromMilliseconds(1000 - timeSpan.Milliseconds));
+                }
                 if (timeSpan.Minutes > 0)
                 {
                     messages.AddRange(getFolderNames(timeSpan.Minutes, ZeroType.NONE));
