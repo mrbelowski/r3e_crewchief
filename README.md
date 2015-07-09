@@ -29,6 +29,9 @@ For version 1.8 I've added compound messages to assemble lap times and stuff. Do
 
 Changes
 -------
+
+Version 1.8.1: shortened number sounds a bit to make them slightly less hesitant; fixed a rounding issue where it might read out "point ten" for the tenths
+
 Version 1.8: Fixed some lap time reporting issues - the new version of R3E inserts -1 into the PreviousLapTime variable if you go off track (it used to just record the lap time). The app now takes account of this; Make 'this is your last lap' message trigger only when crossing the start line for timed races and only when you're leading (insufficient data in the block to support this event if you're not leading); Added lap time reporting to qual sessions; added position reporting to qual sessions; added gap (front and behind) reporting to race sessions.
 
 Version 1.7: Fixed race end logic so the messages only fire when you cross the line; reduced queue check frequency to prevent multiple queued messages being broken up (extra beeps in between); added last lap events to timed races
