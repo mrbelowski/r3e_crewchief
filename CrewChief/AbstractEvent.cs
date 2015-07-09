@@ -11,6 +11,8 @@ namespace CrewChief.Events
         protected AudioPlayer audioPlayer;
 
         protected Boolean isNewLap;
+
+        protected Boolean isNewSector;
             
         protected Boolean isNew;
 
@@ -68,6 +70,7 @@ namespace CrewChief.Events
             isRaceStarted = currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int)Constant.Session.Race;
             isSessionRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green;
 
+            int lastSector = currentLapSector;
             if (isNewLap)
             {
                 currentLapSector = 1;
@@ -82,6 +85,7 @@ namespace CrewChief.Events
             {
                 currentLapSector = 3;
             }
+            isNewSector = currentLapSector != lastSector;
 
             isLast = currentState.Position == currentState.NumCars;
         }

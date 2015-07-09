@@ -41,7 +41,7 @@ namespace CrewChief.Events
 
         protected override void clearStateInternal()
         {
-            initialiseLapTimesWindow();
+            lapTimesWindow = new List<float>(lapTimesWindowSize);
             bestLapTime = 0;
             lastConsistencyUpdate = 0;
             lastConsistencyMessage = ConsistencyResult.NOT_APPLICABLE;
@@ -56,19 +56,12 @@ namespace CrewChief.Events
         {
             if (isSessionRunning && isNewLap && currentState.CompletedLaps > 0)
             {
-                if (lapTimesWindow == null || lapTimesWindow.Count == 0)
+                if (lapTimesWindow == null)
                 {
-                    initialiseLapTimesWindow();
+                    lapTimesWindow = new List<float>(lapTimesWindowSize);
                 }
-                else
-                {
-                    for (int i = lapTimesWindow.Count - 1; i > 0; i--)
-                    {
-                        lapTimesWindow[i] = lapTimesWindow[i - 1];
-                    }
-                }
-                
-                lapTimesWindow[0] = currentState.LapTimePrevious;
+
+                lapTimesWindow.Insert(0, currentState.LapTimePrevious);
                 if (currentState.LapTimePrevious < bestLapTime)
                 {
                     bestLapTime = currentState.LapTimePrevious;
@@ -79,7 +72,7 @@ namespace CrewChief.Events
                     {
                         audioPlayer.queueClip(folderBestLap, 0, this, PearlsOfWisdom.PearlType.GOOD, 0.2);
                     }
-                    else if (currentState.CompletedLaps >= lastConsistencyUpdate + lapTimesWindowSize)
+                    else if (currentState.CompletedLaps >= lastConsistencyUpdate + lapTimesWindowSize && lapTimesWindow.Count >= lapTimesWindowSize)
                     {
                         ConsistencyResult consistency = checkAgainstPreviousLaps();
                         if (consistency == ConsistencyResult.CONSISTENT)
@@ -112,7 +105,7 @@ namespace CrewChief.Events
             Boolean isWorsening = true;
             Boolean isConsistent = true;
 
-            for (int index = 0; index < lapTimesWindow.Count - 1; index++)
+            for (int index = 0; index < lapTimesWindowSize - 1; index++)
             {
                 // belt n braces - shouldn't end up in here without a list full of data...
                 if (lapTimesWindow[index] == 0)
@@ -127,8 +120,8 @@ namespace CrewChief.Events
                     break;
                 }
             }
-            
-            for (int index = 0; index < lapTimesWindow.Count - 1; index++)
+
+            for (int index = 0; index < lapTimesWindowSize - 1; index++)
             {
                 if (lapTimesWindow[index] <= lapTimesWindow[index + 1])
                 {
@@ -136,7 +129,7 @@ namespace CrewChief.Events
                 }
             }
 
-            for (int index = 0; index < lapTimesWindow.Count - 1; index++)
+            for (int index = 0; index < lapTimesWindowSize - 1; index++)
             {
                 float lastLap = lapTimesWindow[index];
                 float lastButOneLap = lapTimesWindow[index + 1];
@@ -188,15 +181,6 @@ namespace CrewChief.Events
                 return ConsistencyResult.CONSISTENT;
             }
             return ConsistencyResult.NOT_APPLICABLE;
-        }
-
-        private void initialiseLapTimesWindow()
-        {
-            lapTimesWindow = new List<float>(lapTimesWindowSize);
-            for (int i = 0; i < lapTimesWindowSize; i++)
-            {
-                lapTimesWindow.Add(0.0f);
-            }
         }
 
         private enum ConsistencyResult

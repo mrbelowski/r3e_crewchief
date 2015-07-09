@@ -28,7 +28,7 @@ namespace CrewChief
 
         private Random random = new Random();
     
-        private Dictionary<String, QueueObject> queuedClips = new Dictionary<String, QueueObject>();
+        private Dictionary<String, QueuedMessage> queuedClips = new Dictionary<String, QueuedMessage>();
 
         static object Lock = new object();
 
@@ -66,17 +66,6 @@ namespace CrewChief
         private PearlsOfWisdom pearlsOfWisdom;
 
         DateTime timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
-
-        class QueueObject
-        {
-            public long dueTime;
-            public AbstractEvent abstractEvent;
-            public QueueObject(long dueTime, AbstractEvent abstractEvent)
-            {
-                this.abstractEvent = abstractEvent;
-                this.dueTime = dueTime;
-            }
-        }
 
         public void initialise() {
             if (System.Diagnostics.Debugger.IsAttached)
@@ -227,8 +216,8 @@ namespace CrewChief
                         backgroundPlayer.Open(new System.Uri(path, System.UriKind.Absolute));
                         loadNewBackground = false;
                     }
-                    
-                    foreach (KeyValuePair<String, QueueObject> entry in queuedClips)
+
+                    foreach (KeyValuePair<String, QueuedMessage> entry in queuedClips)
                     {                        
                         if (entry.Value.dueTime <= milliseconds)
                         {
@@ -272,13 +261,22 @@ namespace CrewChief
             queueClip(eventName, secondsDelay, abstractEvent, PearlsOfWisdom.PearlType.NONE, 0);
         }
 
-    
         // we pass in the event which triggered this clip so that we can query the event before playing the
         // clip to check if it's still valid against the latest game state. This is necessary for clips queued
         // with non-zero delays (e.g. you might have crossed the start / finish line between the clip being 
         // queued and it being played)
         public void queueClip(String eventName, int secondsDelay, AbstractEvent abstractEvent, 
             PearlsOfWisdom.PearlType pearlType, double pearlMessageProbability) {
+            queueClip(eventName, new QueuedMessage(secondsDelay, abstractEvent), pearlType, pearlMessageProbability);
+        }
+
+        public void queueClip(String eventName, QueuedMessage queuedMessage)
+        {
+            queueClip(eventName, queuedMessage, PearlsOfWisdom.PearlType.NONE, 0);
+        }
+
+        public void queueClip(String eventName, QueuedMessage queuedMessage,  PearlsOfWisdom.PearlType pearlType, double pearlMessageProbability)
+        {
             lock (Lock)
             {
                 if (queuedClips.ContainsKey(eventName))
@@ -289,7 +287,6 @@ namespace CrewChief
                 else
                 {
                     Console.WriteLine("Queuing clip for event " + eventName);
-                    long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                     PearlsOfWisdom.PearlMessagePosition pearlPosition = PearlsOfWisdom.PearlMessagePosition.NONE;
                     if (pearlType != PearlsOfWisdom.PearlType.NONE && checkPearlOfWisdomValid(pearlType))
                     {
@@ -298,13 +295,13 @@ namespace CrewChief
                     if (pearlPosition == PearlsOfWisdom.PearlMessagePosition.BEFORE)
                     {
                         queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType),
-                            new QueueObject(milliseconds + (secondsDelay * 1000), abstractEvent));
+                            new QueuedMessage(queuedMessage.dueTime, queuedMessage.abstractEvent));
                     }
-                    queuedClips.Add(eventName, new QueueObject(milliseconds + (secondsDelay * 1000), abstractEvent));
+                    queuedClips.Add(eventName, queuedMessage);
                     if (pearlPosition == PearlsOfWisdom.PearlMessagePosition.AFTER)
                     {
                         queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType),
-                            new QueueObject(milliseconds + (secondsDelay * 1000), abstractEvent));
+                            new QueuedMessage(queuedMessage.dueTime, queuedMessage.abstractEvent));
                     }
                 }
             }
@@ -343,7 +340,7 @@ namespace CrewChief
             Boolean oneOrMoreEventsEnabled = false;
             foreach (String eventName in eventNames) 
             {
-                if (enabledSounds.Contains(eventName))
+                if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) && queuedClips[eventName].isValid) || enabledSounds.Contains(eventName))
                 {
                     oneOrMoreEventsEnabled = true;
                 }
@@ -376,7 +373,7 @@ namespace CrewChief
                 }
                 foreach (String eventName in eventNames)
                 {
-                    if (enabledSounds.Contains(eventName))
+                    if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) && queuedClips[eventName].isValid) || enabledSounds.Contains(eventName))
                     {
                         if (clipIsPearlOfWisdom(eventName))
                         {
@@ -391,11 +388,25 @@ namespace CrewChief
                                 timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
                             }
                         }
-                        List<SoundPlayer> clipsList = clips[eventName];
-                        int index = random.Next(0, clipsList.Count);
-                        SoundPlayer clip = clipsList[index];
-                        Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
-                        clip.PlaySync();
+                        if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier))
+                        {
+                            foreach (String message in queuedClips[eventName].getMessageFolders())
+                            {
+                                List<SoundPlayer> clipsList = clips[message];
+                                int index = random.Next(0, clipsList.Count);
+                                SoundPlayer clip = clipsList[index];
+                                Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
+                                clip.PlaySync();
+                            }
+                        }
+                        else
+                        {
+                            List<SoundPlayer> clipsList = clips[eventName];
+                            int index = random.Next(0, clipsList.Count);
+                            SoundPlayer clip = clipsList[index];
+                            Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
+                            clip.PlaySync();
+                        }                        
                     }
                     else
                     {
