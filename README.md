@@ -25,9 +25,12 @@ For version 1.4 there are now semi-random pearls of wisdom / helpful advice / an
 
 For version 1.6 there are lots of new things but it's mostly filling in the blanks now the memory block is more complete. There are also optional 'sweary' messages - nothing too excessive (just stuff like "aww shit, we just had a penalty"). Set the CrewChief.exe.config "use_sweary_messages" to False if you don't like them
 
+For version 1.8 I've added compound messages to assemble lap times and stuff. Doing this always sounds robotic and my attempt is no different...
 
 Changes
 -------
+Version 1.8: Fixed some lap time reporting issues - the new version of R3E inserts -1 into the PreviousLapTime variable if you go off track (it used to just record the lap time). The app now takes account of this; Added lap time reporting to qual sessions; added position reporting to qual sessions; added gap (front and behind) reporting to race sessions.
+
 Version 1.7: Fixed race end logic so the messages only fire when you cross the line; reduced queue check frequency to prevent multiple queued messages being broken up (extra beeps in between); added last lap events to timed races
 
 Version 1.6: The version includes lots of stuff that wasn't previously possible, now S3 have added more things to the shared memory block. There's still more to come (like monitoring the gaps and relative laptimes, damage monitoring, tyre wear and pressure monitoring etc).
