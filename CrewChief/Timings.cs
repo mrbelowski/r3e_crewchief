@@ -132,8 +132,8 @@ namespace CrewChief.Events
                     numCarsAtLastSector = currentState.NumCars;
                 }
             }
-            
-            if (isSessionRunning && currentState.SessionType == (int) Constant.Session.Qualify && isNewLap)
+
+            if (isSessionRunning && currentState.SessionType == (int)Constant.Session.Qualify && isNewLap && currentState.LapTimePrevious > 0)
             {
                 PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.BAD;
                 if (currentState.Position < 4)

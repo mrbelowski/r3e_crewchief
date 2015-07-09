@@ -62,7 +62,7 @@ namespace CrewChief.Events
                 }
 
                 lapTimesWindow.Insert(0, currentState.LapTimePrevious);
-                if (currentState.LapTimePrevious < bestLapTime)
+                if (currentState.LapTimePrevious > 0 && currentState.LapTimePrevious < bestLapTime)
                 {
                     bestLapTime = currentState.LapTimePrevious;
                 }
@@ -91,7 +91,7 @@ namespace CrewChief.Events
                             audioPlayer.queueClip(folderWorseningTimes, 0, this);
                         }
                     }
-                    else if (currentState.LapTimePrevious - (currentState.LapTimePrevious * goodLapPercent / 100) < currentState.LapTimeBest)
+                    else if (currentState.LapTimePrevious > 0 && currentState.LapTimePrevious - (currentState.LapTimePrevious * goodLapPercent / 100) < currentState.LapTimeBest)
                     {
                         audioPlayer.queueClip(folderGoodLap, 0, this);
                     }                    
@@ -107,8 +107,8 @@ namespace CrewChief.Events
 
             for (int index = 0; index < lapTimesWindowSize - 1; index++)
             {
-                // belt n braces - shouldn't end up in here without a list full of data...
-                if (lapTimesWindow[index] == 0)
+                // check the lap time was recorded
+                if (lapTimesWindow[index] <= 0)
                 {
                     Console.WriteLine("no data for consistency check");
                     lastConsistencyMessage = ConsistencyResult.NOT_APPLICABLE;
