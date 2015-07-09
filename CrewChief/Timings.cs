@@ -86,14 +86,12 @@ namespace CrewChief.Events
                     {
                         gapsInFront.Insert(0, currentState.TimeDeltaFront);
                         gapInFrontStatus = getGapStatus(gapsInFront, gapInFrontAtLastReport);
-                        Console.WriteLine("Gap front " + gapInFrontStatus + ", " + gapsInFront[0]);
                     }
 
                     if (!isLast)
                     {
                         gapsBehind.Insert(0, currentState.TimeDeltaBehind);
                         gapBehindStatus = getGapStatus(gapsBehind, gapBehindAtLastReport);
-                        Console.WriteLine("Gap behind " + gapBehindStatus + ", " + gapsBehind[0]);
                     }
 
                     // Play which ever is the smaller gap, but we're not interested if the gap is < 0.5 or > 20 seconds or hasn't changed:
