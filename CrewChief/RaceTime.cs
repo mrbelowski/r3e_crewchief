@@ -75,8 +75,10 @@ namespace CrewChief.Events
                     }                
                 }
 
+                // this event only works if we're leading because we don't know when the leader 
+                // crosses the line :(
                 if (isRaceStarted && isNewLap && currentState.Player.GameSimulationTime > 60 && !playedLastLap &&
-                    currentState.SessionTimeRemaining < currentState.LapTimeBest)
+                    currentState.Position == 1 && currentState.SessionTimeRemaining < currentState.LapTimeBest)
                 {
                     playedLastLap = true;
                     played5mins = true;
