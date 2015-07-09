@@ -111,7 +111,7 @@ namespace CrewChief.Events
                 if (isNewLap && initialised && currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
                 {
                     // completed a lap, so store the fuel left at this point:
-                    fuelUseWindow.Add(currentState.FuelLeft);
+                    fuelUseWindow.Insert(0, currentState.FuelLeft);
                     // if we've got fuelUseWindowLength + 1 samples (note we initialise the window data with fuelAt15Seconds so we always
                     // have one extra), get the average difference between each pair of values
 
@@ -119,9 +119,9 @@ namespace CrewChief.Events
                     if (fuelUseWindow.Count > fuelUseWindowLength)
                     {
                         averageUsagePerLap = 0;
-                        for (int i = fuelUseWindow.Count - 1; i > fuelUseWindow.Count - fuelUseWindowLength; i-- )
+                        for (int i = 0; i < fuelUseWindowLength - 1; i++)
                         {
-                            averageUsagePerLap += (fuelUseWindow[i] - fuelUseWindow[i-1]);
+                            averageUsagePerLap += (fuelUseWindow[i + 1] - fuelUseWindow[i]);
                         }
                         averageUsagePerLap = averageUsagePerLap / fuelUseWindowLength;
                     }
@@ -170,7 +170,7 @@ namespace CrewChief.Events
                 {
                     // it's 2 minutes since the last fuel window check
                     gameTimeAtLastFuelWindowUpdate = currentState.Player.GameSimulationTime;
-                    fuelUseWindow.Add(currentState.FuelLeft);
+                    fuelUseWindow.Insert(0, currentState.FuelLeft);
                     // if we've got fuelUseWindowLength + 1 samples (note we initialise the window data with fuelAt15Seconds so we always
                     // have one extra), get the average difference between each pair of values
 
@@ -178,9 +178,9 @@ namespace CrewChief.Events
                     if (fuelUseWindow.Count > fuelUseWindowLength)
                     {
                         averageUsagePerMinute = 0;
-                        for (int i = fuelUseWindow.Count - 1; i > fuelUseWindow.Count - fuelUseWindowLength; i-- )
+                        for (int i = 0; i < fuelUseWindowLength - 1; i++)
                         {
-                            averageUsagePerMinute += (fuelUseWindow[i] - fuelUseWindow[i-1]);
+                            averageUsagePerMinute += (fuelUseWindow[i + 1] - fuelUseWindow[i]);
                         }
                         averageUsagePerMinute = averageUsagePerMinute / (fuelUseWindowLength * fuelUseSampleTime);
                     }
@@ -193,7 +193,7 @@ namespace CrewChief.Events
                     if (!playedHalfTimeFuelEstimate && currentState.SessionTimeRemaining < halfTime)
                     {
                         playedHalfTimeFuelEstimate = true;
-                        if (averageUsagePerMinute * halfTime < currentState.FuelLeft) 
+                        if (averageUsagePerMinute * halfTime / 60 > currentState.FuelLeft) 
                         {
                             audioPlayer.queueClip(folderHalfDistanceLowFuel, 0, this);
                         }

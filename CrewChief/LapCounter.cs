@@ -60,6 +60,7 @@ namespace CrewChief.Events
             {
                 audioPlayer.playClipImmediately(folderGreenGreenGreen);
                 playedGreenGreenGreen = true;
+                setGameTimeRaceTimeOffset(currentState);
             }
             if (!playedFinished && isNewLap && currentState.Player.GameSimulationTime > 60 && 
                 currentState.SessionPhase == (int)Constant.SessionPhase.Checkered) 

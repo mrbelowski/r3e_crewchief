@@ -24,6 +24,8 @@ namespace CrewChief.Events
 
         protected Boolean isLast;
 
+        private double gameTimeRaceTimeOffset;
+
         // note this will be -1 if we don't actually know what sector we're in
         protected int currentLapSector;
 
@@ -44,6 +46,7 @@ namespace CrewChief.Events
             isNew = true;
             clearStateInternal();
             currentLapSector = -1;
+            gameTimeRaceTimeOffset = 0;
             isLast = false;
         }
 
@@ -62,6 +65,17 @@ namespace CrewChief.Events
                 triggerInternal(lastState, currentState);
             }
             isNew = false;
+        }
+
+        protected double getTimeInRace(Shared currentState)
+        {
+            return currentState.Player.GameSimulationTime + gameTimeRaceTimeOffset;
+        }
+
+        protected void setGameTimeRaceTimeOffset(Shared currentState)
+        {
+            gameTimeRaceTimeOffset = 0 - currentState.Player.GameSimulationTime;
+            Console.WriteLine("race started " + currentState.Player.GameSimulationTime + " seconds after simulation start");
         }
 
         private void getCommonStateData(Shared lastState, Shared currentState)

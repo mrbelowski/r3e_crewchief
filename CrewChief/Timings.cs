@@ -17,7 +17,7 @@ namespace CrewChief.Events
         private String folderGapInFrontConstant = "timings/gap_in_front_constant";
 
         private String folderGapBehindIncreasing = "timings/gap_behind_increasing";
-        private String folderGapBehingDecreasing = "timings/gap_behind_decreasing";
+        private String folderGapBehindDecreasing = "timings/gap_behind_decreasing";
         private String folderGapBehindConstant = "timings/gap_behind_constant";
 
         private String folderSeconds = "timings/seconds";
@@ -145,7 +145,7 @@ namespace CrewChief.Events
                                 gapBehindAtLastReport = gapsBehind[0];
                                 break;
                             case GapStatus.DECREASING:
-                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontDecreasing, folderSeconds,
+                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapBehindDecreasing, folderSeconds,
                                     TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
                                 lastGapBehindReport = GapStatus.DECREASING;
                                 gapBehindAtLastReport = gapsBehind[0];
@@ -194,7 +194,7 @@ namespace CrewChief.Events
             // we don't want to report anything
 
             // when comparing gaps round to 1 decimal place
-            if (gaps[0] == -1 || gaps.Count < 2 || gaps[0] > 20 || Math.Abs(gaps[0] - gaps[1]) > 5)
+            if (gaps[0] <= 0 || gaps.Count < 2 || gaps[1] <= 0 || gaps[0] > 20 || Math.Abs(gaps[0] - gaps[1]) > 5)
             {
                 return GapStatus.NONE;
             }
