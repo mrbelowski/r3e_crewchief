@@ -63,7 +63,7 @@ namespace CrewChief.Events
                     previousPosition = currentState.Position;
                 } else {
                     if (currentState.NumberOfLaps > lapNumberAtLastMessage + 3
-                            || previousPosition != currentState.Position) {
+                            || previousPosition != currentState.Position || currentState.SessionType == (int) Constant.Session.Qualify) {
                         PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.NONE;
                         if (isRaceStarted)
                         {
