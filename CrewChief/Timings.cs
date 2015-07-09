@@ -22,8 +22,8 @@ namespace CrewChief.Events
 
         private String folderSeconds = "timings/seconds";
 
-        // only report changing gaps if we've got at least 4 logged gaps *to the same car*
-        private int gapsWindowSize = 4;
+        private String folderBeingHeldUp = "timings/being_held_up";
+        private String folderBeingPressured = "timings/being_pressured";
 
         private List<float> gapsInFront;
 
@@ -36,6 +36,16 @@ namespace CrewChief.Events
         private int positionAtLastSector;
 
         private int numCarsAtLastSector;
+
+        private float gapBehindAtLastReport;
+
+        private float gapInFrontAtLastReport;
+
+        private int sectorsSinceLastReport;
+        
+        private int sectorsUntilNextReport;
+
+        private Random rand = new Random();
 
         public Timings(AudioPlayer audioPlayer)
         {
@@ -50,6 +60,10 @@ namespace CrewChief.Events
             numCarsAtLastSector = 0;
             lastGapBehindReport = GapStatus.NONE;
             lastGapInFrontReport = GapStatus.NONE;
+            gapBehindAtLastReport = -1;
+            gapInFrontAtLastReport = -1;
+            sectorsSinceLastReport = 0;
+            sectorsUntilNextReport = 0;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -61,60 +75,80 @@ namespace CrewChief.Events
         {
             if (isRaceStarted && isNewSector)
             {
+                sectorsSinceLastReport++;          
+                // only report gaps if the player's position hasn't changed and the number of cars in the race hasn't changed. This is the
+                // only way to be sure that we're reporting gaps to the same opponent car
                 if (currentState.Position == positionAtLastSector && currentState.NumCars == numCarsAtLastSector)
                 {
+                    GapStatus gapInFrontStatus = GapStatus.NONE;
+                    GapStatus gapBehindStatus = GapStatus.NONE;
                     if (currentState.Position != 1)
                     {
                         gapsInFront.Insert(0, currentState.TimeDeltaFront);
+                        gapInFrontStatus = getGapStatus(gapsInFront, gapInFrontAtLastReport);
                     }
 
                     if (!isLast)
                     {
                         gapsBehind.Insert(0, currentState.TimeDeltaBehind);
+                        gapBehindStatus = getGapStatus(gapsBehind, gapBehindAtLastReport);
                     }
-                    GapStatus gapInFrontStatus = getGapStatus(gapsInFront);
-                    GapStatus gapBehindStatus = getGapStatus(gapsBehind);
 
-                    // play which ever status has changed. If they've both changed, play which ever is the smaller gap:
-                    Boolean playGapInFront = gapInFrontStatus != GapStatus.NONE && gapInFrontStatus != lastGapInFrontReport &&
-                        (gapBehindStatus == GapStatus.NONE || gapBehindStatus == lastGapBehindReport || gapsInFront[0] < gapsBehind[0]);
+                    // Play which ever is the smaller gap, but we're not interested if the gap is < 0.5 or > 20 seconds or hasn't changed:
+                    Boolean playGapInFront = gapInFrontStatus != GapStatus.NONE && gapInFrontStatus != GapStatus.CONSTANT && 
+                        (gapBehindStatus == GapStatus.NONE || gapsInFront[0] < gapsBehind[0]);
 
-                    Boolean playGapBehind = !playGapInFront && gapBehindStatus != GapStatus.NONE && gapBehindStatus != lastGapBehindReport;
+                    Boolean playGapBehind = !playGapInFront && gapBehindStatus != GapStatus.NONE && gapBehindStatus != GapStatus.CONSTANT;
 
-                    if (playGapInFront)
-                    { 
-                        switch (gapInFrontStatus) {
+                    if (playGapInFront && sectorsSinceLastReport > sectorsUntilNextReport)
+                    {
+                        sectorsSinceLastReport = 0;
+                        // here we report on gaps semi-randomly, we'll see how this sounds...
+                        sectorsUntilNextReport = rand.Next(2, 6);
+                        switch (gapInFrontStatus)
+                        {
                             case GapStatus.INCREASING:
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontIncreasing, folderSeconds,
                                     TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
                                 lastGapInFrontReport = GapStatus.INCREASING;
-                            break;
+                                gapInFrontAtLastReport = gapsInFront[0];
+                                break;
                             case GapStatus.DECREASING:
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontDecreasing, folderSeconds,
                                     TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
                                 lastGapInFrontReport = GapStatus.DECREASING;
-                            break;
+                                gapInFrontAtLastReport = gapsInFront[0];
+                                break;
                             case GapStatus.CONSTANT:
                                 // do we even want 'constant' reports?
                                 //audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontConstant, folderSeconds,
                                 //    TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
                                 //lastGapInFrontReport = GapStatus.CONSTANT;
-                            break;
+                                break;
+                            case GapStatus.CLOSE:
+                                audioPlayer.queueClip(folderBeingHeldUp, 0, this);
+                                lastGapInFrontReport = GapStatus.CLOSE;
+                                gapInFrontAtLastReport = gapsInFront[0];
+                                break;
                         }
                     }
-                    if (playGapBehind)
+                    if (playGapBehind && sectorsSinceLastReport > sectorsUntilNextReport)
                     {
+                        sectorsSinceLastReport = 0;
+                        sectorsUntilNextReport = rand.Next(2, 6);
                         switch (gapBehindStatus)
                         {
                             case GapStatus.INCREASING:
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapBehindIncreasing, folderSeconds,
                                     TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
                                 lastGapBehindReport = GapStatus.INCREASING;
+                                gapBehindAtLastReport = gapsBehind[0];
                                 break;
                             case GapStatus.DECREASING:
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontDecreasing, folderSeconds,
                                     TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
                                 lastGapBehindReport = GapStatus.DECREASING;
+                                gapBehindAtLastReport = gapsBehind[0];
                                 break;
                             case GapStatus.CONSTANT:
                                 // do we even want 'constant' reports?
@@ -122,8 +156,13 @@ namespace CrewChief.Events
                                 //    TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
                                 //lastGapBehindReport = GapStatus.CONSTANT;
                                 break;
+                            case GapStatus.CLOSE:
+                                audioPlayer.queueClip(folderBeingPressured, 0, this);
+                                lastGapBehindReport = GapStatus.CLOSE;
+                                gapBehindAtLastReport = gapsBehind[0];
+                                break;
                         }
-                    }
+                    }                                    
                 }
                 else
                 {
@@ -149,29 +188,56 @@ namespace CrewChief.Events
             }
         }
 
-        private GapStatus getGapStatus(List<float> gaps)
+        private GapStatus getGapStatus(List<float> gaps, float lastReportedGap)
         {
-            if (gaps.Count >= gapsWindowSize)
+            // if we only have 1 gap in the list, or the last gap is too big, or the change in the gap is too big,
+            // we don't want to report anything
+
+            // when comparing gaps round to 1 decimal place
+            if (gaps.Count < 2 || gaps[0] > 20 || Math.Abs(gaps[0] - gaps[1]) > 5)
             {
-                if (Math.Round(gaps[0], 1) == Math.Round(gapsInFront[gapsWindowSize - 1], 1))
-                {
-                    return GapStatus.CONSTANT;
-                }
-                if (Math.Round(gaps[0], 1) > Math.Round(gapsInFront[gapsWindowSize - 1], 1))
+                return GapStatus.NONE;
+            }
+            else if (gaps[0] < 0.5 && gaps[1] < 0.5) 
+            {
+                // this car has been close for 2 sectors
+                return GapStatus.CLOSE;
+            }
+            else if (lastReportedGap == -1)
+            {                
+                if (Math.Round(gaps[0], 1) > Math.Round(gaps[1], 1))
                 {
                     return GapStatus.INCREASING;
                 }
-                if (Math.Round(gaps[0], 1) < Math.Round(gapsInFront[gapsWindowSize - 1], 1))
+                else if (Math.Round(gaps[0], 1) < Math.Round(gaps[1], 1))
                 {
                     return GapStatus.DECREASING;
                 }
+                else
+                {
+                    return GapStatus.CONSTANT;
+                }
             }
-            return GapStatus.NONE;
+            else
+            {
+                if (Math.Round(gaps[0], 1) > Math.Round(lastReportedGap))
+                {
+                    return GapStatus.INCREASING;
+                }
+                else if (Math.Round(gaps[0], 1) < Math.Round(lastReportedGap))
+                {
+                    return GapStatus.DECREASING;
+                }
+                else
+                {
+                    return GapStatus.CONSTANT;
+                }
+            }           
         }
 
         private enum GapStatus
         {
-            CONSTANT, INCREASING, DECREASING, NONE
+            CLOSE, CONSTANT, INCREASING, DECREASING, NONE
         }
     }
 }
