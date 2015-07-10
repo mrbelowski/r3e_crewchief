@@ -40,9 +40,12 @@ namespace CrewChief.Events
         float bustedTransmissionThreshold = 0.0f;
         float bustedEngineThreshold = 0.0f;
 
+        Boolean damageEnabled;
+
         public DamageReporting(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
+            damageEnabled = false;
         }
 
         protected override void clearStateInternal()
@@ -58,6 +61,11 @@ namespace CrewChief.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
+            if (!damageEnabled &&
+                currentState.CarDamage.Aerodynamics == 1 && currentState.CarDamage.Transmission == 1 && currentState.CarDamage.Engine == 1)
+            {
+                damageEnabled = true;
+            }
             if (isNewLap)
             {
                 Console.WriteLine("Aero " + currentState.CarDamage.Aerodynamics);
@@ -65,11 +73,6 @@ namespace CrewChief.Events
                 Console.WriteLine("Tranny " + currentState.CarDamage.Transmission);
             }
 
-            // don't check until 15 seconds have elapsed
-            if (currentState.Player.GameSimulationTime < 15)
-            {
-                return;
-            }
             if (!playedBustedEngine && currentState.CarDamage.Engine <= bustedEngineThreshold)
             {
                 audioPlayer.queueClip(folderBustedEngine, 0, this);

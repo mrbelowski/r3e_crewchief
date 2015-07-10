@@ -34,6 +34,8 @@ namespace CrewChief.Events
         // lap number when the last consistency update was made
         private int lastConsistencyUpdate;
 
+        private Boolean lapIsValid;
+
         public LapTimes(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -45,6 +47,7 @@ namespace CrewChief.Events
             bestLapTime = 0;
             lastConsistencyUpdate = 0;
             lastConsistencyMessage = ConsistencyResult.NOT_APPLICABLE;
+            lapIsValid = true;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -54,6 +57,12 @@ namespace CrewChief.Events
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
         {
+            // in race sessions (race only) the previousLapTime isn't set to -1 if that lap was invalid, so 
+            // we need to record that it's invalid while we're actually on the lap
+            if (isSessionRunning && lapIsValid && currentState.CompletedLaps > 0 && !isNewLap && currentState.LapTimeCurrent == -1)
+            {
+                lapIsValid = false;
+            }
             if (isSessionRunning && isNewLap && currentState.CompletedLaps > 0)
             {
                 if (lapTimesWindow == null)
@@ -68,7 +77,7 @@ namespace CrewChief.Events
                 }
                 if (currentState.CompletedLaps > 2)
                 {
-                    if (currentState.LapTimePrevious > 0 && currentState.LapTimePrevious <= currentState.LapTimeBest)
+                    if (lapIsValid && currentState.LapTimePrevious > 0 && currentState.LapTimePrevious <= currentState.LapTimeBest)
                     {
                         audioPlayer.queueClip(folderBestLap, 0, this, PearlsOfWisdom.PearlType.GOOD, 0.2);
                     }
@@ -91,11 +100,12 @@ namespace CrewChief.Events
                             audioPlayer.queueClip(folderWorseningTimes, 0, this);
                         }
                     }
-                    else if (currentState.LapTimePrevious > 0 && currentState.LapTimePrevious - (currentState.LapTimePrevious * goodLapPercent / 100) < currentState.LapTimeBest)
+                    else if (lapIsValid && currentState.LapTimePrevious > 0 && currentState.LapTimePrevious - (currentState.LapTimePrevious * goodLapPercent / 100) < currentState.LapTimeBest)
                     {
                         audioPlayer.queueClip(folderGoodLap, 0, this);
                     }                    
                 }
+                lapIsValid = true;
             }
         }
 

@@ -47,6 +47,10 @@ namespace CrewChief.Events
 
         private Random rand = new Random();
 
+        private int drsRange;
+
+        private Boolean hasDRS;
+
         public Timings(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -64,6 +68,8 @@ namespace CrewChief.Events
             gapInFrontAtLastReport = -1;
             sectorsSinceLastReport = 0;
             sectorsUntilNextReport = 0;
+            drsRange = 2;  // TODO: get the DRS range from somewhere
+            hasDRS = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -73,6 +79,10 @@ namespace CrewChief.Events
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
         {
+            if (!hasDRS && currentState.DrsAvailable == 1)
+            {
+                hasDRS = true;
+            }
             if (isRaceStarted && isNewSector)
             {
                 sectorsSinceLastReport++;          
@@ -171,7 +181,6 @@ namespace CrewChief.Events
                     numCarsAtLastSector = currentState.NumCars;
                 }
             }
-
             if (isSessionRunning && currentState.SessionType == (int)Constant.Session.Qualify && isNewLap && currentState.LapTimePrevious > 0)
             {
                 PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.BAD;
