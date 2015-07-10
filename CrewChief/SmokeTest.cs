@@ -8,7 +8,7 @@ namespace CrewChief.Events
 {
     class SmokeTest : AbstractEvent
     {
-        private String folderTest = "smoke_test/test";
+        private String folderTest = "radio_check/test";
 
         public SmokeTest(AudioPlayer audioPlayer)
         {
