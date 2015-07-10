@@ -94,6 +94,7 @@ namespace CrewChief.Events
                 // To get the initial fuel, wait for 15 seconds
                 if (!initialised && currentState.Player.GameSimulationTime > 15)
                 {
+                    fuelUseWindow = new List<float>();
                     fuelAfter15Seconds = currentState.FuelLeft;
                     fuelUseWindow.Add(fuelAfter15Seconds);
                     gameTimeAtLastFuelWindowUpdate = currentState.Player.GameSimulationTime;
