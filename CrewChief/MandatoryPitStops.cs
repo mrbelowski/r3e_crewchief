@@ -259,7 +259,7 @@ namespace CrewChief.Events
                                         
                     if (playBoxNowMessage && currentLapSector == 3)
                     {
-                        audioPlayer.queueClip(folderMandatoryPitStopsPitNow, 0, this);
+                        audioPlayer.queueClip(folderMandatoryPitStopsPitNow, 6, this);
                         playBoxNowMessage = false;
                     }
                 }

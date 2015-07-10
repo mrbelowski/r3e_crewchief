@@ -137,9 +137,9 @@ namespace CrewChief.Events
                     if (lapsCompleted - penaltyLap == 3)
                     {
                         // what if the player is actually serving his penalty at the time?? This simply won't work reliably
-                        // Also, what if the player crosses the line while serving a slow-down penalty? A short delay (5 seconds)
+                        // Also, what if the player crosses the line while serving a slow-down penalty? A short delay (10 seconds)
                         // might help a little...
-                        audioPlayer.queueClip(folderDisqualified, 5, this);
+                        audioPlayer.queueClip(folderDisqualified, 10, this);
                     }
                     else if (lapsCompleted - penaltyLap == 2 && hasDriveThrough(currentState))
                     {
@@ -157,12 +157,12 @@ namespace CrewChief.Events
                 else if (!playedPitNow && currentLapSector == 3 && hasStopGo(currentState) && lapsCompleted - penaltyLap == 2)
                 {
                     playedPitNow = true;
-                    audioPlayer.queueClip(folderPitNowStopGo, 0, this);
+                    audioPlayer.queueClip(folderPitNowStopGo, 6, this);
                 }
                 else if (!playedPitNow && currentLapSector == 3 && hasDriveThrough(currentState) && lapsCompleted - penaltyLap == 2)
                 {
                     playedPitNow = true;
-                    audioPlayer.queueClip(folderPitNowDriveThrough, 0, this);
+                    audioPlayer.queueClip(folderPitNowDriveThrough, 6, this);
                 }
                 else if (!playedTimePenaltyMessage && hasTimePenalty(currentState))
                 {
