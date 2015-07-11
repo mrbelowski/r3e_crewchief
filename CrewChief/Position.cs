@@ -8,11 +8,13 @@ namespace CrewChief.Events
 {
     class Position : AbstractEvent
     {
-        private String folderP1 = "position/p1";
+        public static String folderP1 = "position/p1";
+        public static String folderLeading = "position/leading";
+        public static String folderPole = "position/pole";
 
-        private String folderP2 = "position/p2";
+        public static String folderP2 = "position/p2";
 
-        private String folderP3 = "position/p3";
+        public static String folderP3 = "position/p3";
 
         private String folderP4 = "position/p4";
 
@@ -63,8 +65,7 @@ namespace CrewChief.Events
                     previousPosition = currentState.Position;
                 } else {
                     if (currentState.NumberOfLaps > lapNumberAtLastMessage + 3
-                            || previousPosition != currentState.Position ||
-                            (currentState.SessionType == (int) Constant.Session.Qualify && currentState.CompletedLaps > 1)) {
+                            || previousPosition != currentState.Position) {
                         PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.NONE;
                         if (isRaceStarted)
                         {
@@ -86,7 +87,15 @@ namespace CrewChief.Events
                         
                         switch (currentState.Position) {
                             case 1 :
-                                audioPlayer.queueClip(folderP1, 0, this, pearlType, 0.8);
+                                if (currentState.SessionType == (int) Constant.Session.Race)
+                                {
+                                    audioPlayer.queueClip(folderLeading, 0, this, pearlType, 0.8);
+                                }
+                                else if (currentState.SessionType == (int)Constant.Session.Practice)
+                                {
+                                    audioPlayer.queueClip(folderP1, 0, this, pearlType, 0.8);
+                                }
+                                // no p1 for pole - this is in the laptime tracker
                                 break;
                             case 2 :
                                 audioPlayer.queueClip(folderP2, 0, this, pearlType, 0.7);

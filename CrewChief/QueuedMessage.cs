@@ -14,7 +14,8 @@ namespace CrewChief
         private String folderNamePoint = "numbers/point";
         private String folderNameStub = "numbers/";
 
-
+        // if a queued message is a gap filler, it's only played if the queue doesn't contain any other messages
+        public Boolean gapFiller = false;
         public long dueTime;
         public AbstractEvent abstractEvent;
         public TimeSpan timeSpan;
@@ -37,9 +38,9 @@ namespace CrewChief
 
         public QueuedMessage(List<String> messages, int secondsDelay, AbstractEvent abstractEvent)
         {
-            if (messagesBeforeTimeSpan != null && messagesBeforeTimeSpan.Count > 0)
+            if (messages != null && messages.Count > 0)
             {
-                this.messagesBeforeTimeSpan.AddRange(messagesBeforeTimeSpan);
+                this.messagesBeforeTimeSpan.AddRange(messages);
             }
             this.dueTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond + (secondsDelay * 1000);
             this.abstractEvent = abstractEvent;

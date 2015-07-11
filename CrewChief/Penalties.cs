@@ -134,12 +134,13 @@ namespace CrewChief.Events
                 else if (isNewLap && (hasDriveThrough(currentState) || hasStopGo(currentState)))
                 {
                     lapsCompleted = currentState.CompletedLaps;
-                    if (lapsCompleted - penaltyLap == 3)
+                    // dodgy check here - if the player's car is being driven by the AI, assume we're pitting
+                    if (lapsCompleted - penaltyLap == 3 && currentState.ControlType != (int) Constant.Control.AI)
                     {
                         // what if the player is actually serving his penalty at the time?? This simply won't work reliably
-                        // Also, what if the player crosses the line while serving a slow-down penalty? A short delay (10 seconds)
+                        // Also, what if the player crosses the line while serving a slow-down penalty? A short delay (5 seconds)
                         // might help a little...
-                        audioPlayer.queueClip(folderDisqualified, 10, this);
+                        audioPlayer.queueClip(folderDisqualified, 5, this);
                     }
                     else if (lapsCompleted - penaltyLap == 2 && hasDriveThrough(currentState))
                     {

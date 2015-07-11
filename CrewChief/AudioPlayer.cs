@@ -7,6 +7,7 @@ using System.Threading;
 using System.Media;
 using CrewChief.Events;
 using System.Windows.Media;
+using System.Collections.Specialized;
 
 namespace CrewChief
 {
@@ -28,7 +29,7 @@ namespace CrewChief
 
         private Random random = new Random();
     
-        private Dictionary<String, QueuedMessage> queuedClips = new Dictionary<String, QueuedMessage>();
+        private OrderedDictionary queuedClips = new OrderedDictionary();
 
         static object Lock = new object();
 
@@ -217,19 +218,21 @@ namespace CrewChief
                         loadNewBackground = false;
                     }
 
-                    foreach (KeyValuePair<String, QueuedMessage> entry in queuedClips)
-                    {                        
-                        if (entry.Value.dueTime <= milliseconds)
+                    foreach (String key in queuedClips.Keys)
+                    {
+                        QueuedMessage queuedMessage = (QueuedMessage)queuedClips[key];
+                        if (queuedMessage.dueTime <= milliseconds)
                         {
-                            if ((entry.Value.abstractEvent == null || entry.Value.abstractEvent.isClipStillValid(entry.Key)) && !keysToPlay.Contains(entry.Key))
+                            if ((queuedMessage.abstractEvent == null || queuedMessage.abstractEvent.isClipStillValid(key)) &&
+                                !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || queuedClips.Count == 1))
                             {
-                                keysToPlay.Add(entry.Key);
+                                keysToPlay.Add(key);
                             }
                             else
                             {
-                                Console.WriteLine("Clip " + entry.Key + " is no longer valid");
+                                Console.WriteLine("Clip " + key + " is not valid");
                             }
-                            keysToRemove.Add(entry.Key);
+                            keysToRemove.Add(key);
                         }
                     }
                     if (keysToPlay.Count > 0)
@@ -279,7 +282,7 @@ namespace CrewChief
         {
             lock (Lock)
             {
-                if (queuedClips.ContainsKey(eventName))
+                if (queuedClips.Contains(eventName))
                 {
                     Console.WriteLine("Clip for event " + eventName + " is already queued, ignoring");
                     return;
@@ -311,7 +314,7 @@ namespace CrewChief
         {
             lock (Lock)
             {
-                if (queuedClips.ContainsKey(eventName))
+                if (queuedClips.Contains(eventName))
                 {
                     queuedClips.Remove(eventName);
                 }
@@ -340,7 +343,8 @@ namespace CrewChief
             Boolean oneOrMoreEventsEnabled = false;
             foreach (String eventName in eventNames) 
             {
-                if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) && queuedClips[eventName].isValid) || enabledSounds.Contains(eventName))
+                if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) && 
+                    ((QueuedMessage) queuedClips[eventName]).isValid) || enabledSounds.Contains(eventName))
                 {
                     oneOrMoreEventsEnabled = true;
                 }
@@ -373,7 +377,8 @@ namespace CrewChief
                 }
                 foreach (String eventName in eventNames)
                 {
-                    if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) && queuedClips[eventName].isValid) || enabledSounds.Contains(eventName))
+                    if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) &&
+                        ((QueuedMessage) queuedClips[eventName]).isValid) || enabledSounds.Contains(eventName))
                     {
                         if (clipIsPearlOfWisdom(eventName))
                         {
@@ -390,7 +395,7 @@ namespace CrewChief
                         }
                         if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier))
                         {
-                            foreach (String message in queuedClips[eventName].getMessageFolders())
+                            foreach (String message in ((QueuedMessage) queuedClips[eventName]).getMessageFolders())
                             {
                                 List<SoundPlayer> clipsList = clips[message];
                                 int index = random.Next(0, clipsList.Count);

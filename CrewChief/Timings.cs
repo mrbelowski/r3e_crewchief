@@ -10,8 +10,6 @@ namespace CrewChief.Events
     // field in the data block
     class Timings : AbstractEvent
     {
-        private String folderLapTimeStart = "timings/lap_time_report";
-
         private String folderGapInFrontIncreasing = "timings/gap_in_front_increasing";
         private String folderGapInFrontDecreasing = "timings/gap_in_front_decreasing";
         private String folderGapInFrontConstant = "timings/gap_in_front_constant";
@@ -180,20 +178,6 @@ namespace CrewChief.Events
                     positionAtLastSector = currentState.Position;
                     numCarsAtLastSector = currentState.NumCars;
                 }
-            }
-            if (isSessionRunning && currentState.SessionType == (int)Constant.Session.Qualify && isNewLap && currentState.LapTimePrevious > 0)
-            {
-                PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.BAD;
-                if (currentState.Position < 4)
-                {
-                    pearlType = PearlsOfWisdom.PearlType.GOOD;
-                }
-                else if (currentState.Position >= 4)
-                {
-                    pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
-                }
-                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings",
-                    new QueuedMessage(folderLapTimeStart, null, TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this), pearlType, 0.5);
             }
         }
 
