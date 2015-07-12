@@ -116,10 +116,11 @@ namespace CrewChief.Events
                             }
                             else if (getLapTimeBestForClassLeader(currentState) > 0)
                             {
+                                // delay this a bit...
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
                                         new QueuedMessage(folderGapIntro, folderGapOutroOffPace,
                                             TimeSpan.FromSeconds(currentState.LapTimeBest - getLapTimeBestForClassLeader(currentState)),
-                                            0, this));
+                                            5, this));
                             }
                         } 
                         else if (lastLapRating == LastLapRating.PERSONAL_BEST_STILL_SLOW || lastLapRating == LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER ||
@@ -179,7 +180,7 @@ namespace CrewChief.Events
                         lastConsistencyUpdate = currentState.CompletedLaps;
                         audioPlayer.queueClip(folderWorseningTimes, 0, this);
                     }
-                }                 
+                }              
                 lapIsValid = true;
             }
         }

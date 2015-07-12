@@ -27,12 +27,12 @@ namespace CrewChief.Events
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             audioPlayer.queueClip(folderTest, 0, this);
-            /*
+            
             audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceTime",
-                                    new QueuedMessage("lap_times/time_intro", null, TimeSpan.FromMilliseconds(new Random().Next(40000, 100000)), 0, this));
+                                    new QueuedMessage("lap_times/time_intro", null, TimeSpan.FromMilliseconds(new Random().Next(60000, 70500)), 0, this));
             audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
                                         new QueuedMessage("lap_times/gap_intro", "lap_times/gap_outro_off_pace",
-                                            TimeSpan.FromMilliseconds(new Random().Next(1000, 4000)), 0, this));*/
+                                            TimeSpan.FromMilliseconds(new Random().Next(1000, 4000)), 0, this));
         }
     }
 }

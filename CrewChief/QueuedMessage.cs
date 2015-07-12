@@ -13,6 +13,7 @@ namespace CrewChief
         private String folderNameOh = "numbers/oh";
         private String folderNamePoint = "numbers/point";
         private String folderNameStub = "numbers/";
+        private String folderZeroZero = "numbers/zerozero";
 
         // if a queued message is a gap filler, it's only played if the queue doesn't contain any other messages
         public Boolean gapFiller = false;
@@ -105,8 +106,7 @@ namespace CrewChief
                     if (timeSpan.Seconds == 0)
                     {
                         // add "zero-zero" for messages with minutes in them
-                        messages.Add(folderNameStub + 0);
-                        messages.Add(folderNameStub + 0);
+                        messages.Add(folderZeroZero);
                     }
                     else
                     {
@@ -121,7 +121,7 @@ namespace CrewChief
                 messages.Add(folderNamePoint);
                 if (tenths == 0)
                 {
-                    messages.Add(folderNameStub + tenths);
+                    messages.Add(folderNameStub + 0);
                 }
                 else
                 {
@@ -139,32 +139,36 @@ namespace CrewChief
                 // only numbers < 60 are supported
                 if (number < 10)
                 {
+                    // if the number is < 10, use the "oh two" files if we've asked for "oh" instead of "zero"
                     if (zeroType == ZeroType.OH)
                     {
-                        names.Add(folderNameOh);
+                        if (number == 0)
+                        {
+                            // will this block ever be reached?
+                            names.Add(folderNameOh);
+                        }
+                        else
+                        {
+                            names.Add(folderNameStub + "0" + number);
+                        }
                     }
                     else if (zeroType == ZeroType.ZERO)
                     {
                         names.Add(folderNameStub + 0);
+                        if (number > 0)
+                        {
+                            names.Add(folderNameStub + number);
+                        }
                     }
-                    if (number > 0)
+                    else
                     {
                         names.Add(folderNameStub + number);
-                    }
-                } 
-                else if (number <= 20)
-                {
-                    names.Add(folderNameStub + number);
+                    }                   
                 }
-                else if (number > 20)
+                else
                 {
-                    int tens = ((int)(number / 10));
-                    int units = number - (10 * tens);
-                    names.Add(folderNameStub + (tens * 10));
-                    if (units > 0)
-                    {
-                        names.Add(folderNameStub + units);
-                    }
+                    // > 10 so use the actual number
+                    names.Add(folderNameStub + number);
                 }
             }
             return names;

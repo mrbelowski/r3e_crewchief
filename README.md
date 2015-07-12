@@ -30,6 +30,8 @@ For version 1.8 I've added compound messages to assemble lap times and stuff. Do
 Changes
 -------
 
+Version 1.8.6: reworked gap / laptime reporting and made the number reading a bit less robotic; some other minor fixes and tweaks.
+
 Version 1.8.5: fixed damage reporting for races where damage is disabled *again*...; delay damage messages a bit
 
 Version 1.8.4: fixed damage reporting for races where damage is disabled; don't report lap time in-race when a lap is invalid
