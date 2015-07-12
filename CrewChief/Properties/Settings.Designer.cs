@@ -115,7 +115,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.5")]
         public float pearls_of_wisdom_likelihood {
             get {
                 return ((float)(this["pearls_of_wisdom_likelihood"]));

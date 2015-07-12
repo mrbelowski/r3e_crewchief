@@ -15,7 +15,7 @@ namespace CrewChief
         private String folderNameStub = "numbers/";
         private String folderZeroZero = "numbers/zerozero";
 
-        // if a queued message is a gap filler, it's only played if the queue doesn't contain any other messages
+        // if a queued message is a gap filler, it's only played if the queue only contains 1 other message
         public Boolean gapFiller = false;
         public long dueTime;
         public AbstractEvent abstractEvent;

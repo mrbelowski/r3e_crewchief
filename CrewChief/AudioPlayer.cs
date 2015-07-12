@@ -224,7 +224,7 @@ namespace CrewChief
                         if (queuedMessage.dueTime <= milliseconds)
                         {
                             if ((queuedMessage.abstractEvent == null || queuedMessage.abstractEvent.isClipStillValid(key)) &&
-                                !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || queuedClips.Count == 1))
+                                !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || playGapFillerMessage()))
                             {
                                 keysToPlay.Add(key);
                             }
@@ -246,6 +246,11 @@ namespace CrewChief
                     }
                 }
             }
+        }
+
+        private Boolean playGapFillerMessage()
+        {
+            return queuedClips.Count == 1 || (queuedClips.Count == 2 && random.Next() > 0.5);
         }
 
         public void close() {

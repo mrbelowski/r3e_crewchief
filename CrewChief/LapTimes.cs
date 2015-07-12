@@ -120,7 +120,7 @@ namespace CrewChief.Events
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
                                         new QueuedMessage(folderGapIntro, folderGapOutroOffPace,
                                             TimeSpan.FromSeconds(currentState.LapTimeBest - getLapTimeBestForClassLeader(currentState)),
-                                            5, this));
+                                            new Random().Next(0, 20), this));
                             }
                         } 
                         else if (lastLapRating == LastLapRating.PERSONAL_BEST_STILL_SLOW || lastLapRating == LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER ||

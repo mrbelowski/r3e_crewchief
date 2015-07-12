@@ -14,6 +14,11 @@ namespace CrewChief.Events
         private String folder5mins = "race_time/five_minutes_left";
         private String folder5minsLeading = "race_time/five_minutes_left_leading";
         private String folder5minsPodium = "race_time/five_minutes_left_podium";
+        private String folder2mins = "race_time/two_minutes_left";
+        private String folder2minsLeading = "race_time/two_minutes_left_leading";
+        private String folder2minsPodium = "race_time/two_minutes_left_podium";
+        // TODO: 2 minutes remaining messages
+        //TODO: separate messages depending on the gap
         private String folder10mins = "race_time/ten_minutes_left";
         private String folder15mins = "race_time/fifteen_minutes_left";
         private String folder20mins = "race_time/twenty_minutes_left";
@@ -22,7 +27,7 @@ namespace CrewChief.Events
         private String folderLastLapLeading = "race_time/last_lap_leading";
         private String folderLastLapPodium = "race_time/last_lap_top_three";
 
-        private Boolean played5mins, played10mins, played15mins, played20mins, playedHalfWayHome, playedLastLap;
+        private Boolean played2mins, played5mins, played10mins, played15mins, played20mins, playedHalfWayHome, playedLastLap;
 
         private float halfTime;
 
@@ -35,7 +40,7 @@ namespace CrewChief.Events
 
         protected override void clearStateInternal()
         {
-            played5mins = false; played10mins = false; played15mins = false;
+            played2mins = false; played5mins = false; played10mins = false; played15mins = false;
             played20mins = false; playedHalfWayHome = false; playedLastLap = false ;
             halfTime = 0;
             gotHalfTime = false;
@@ -62,7 +67,7 @@ namespace CrewChief.Events
                     }
                 }
                 PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.NONE;
-                if (currentState.CompletedLaps > 1)
+                if (currentState.SessionType == (int) Constant.Session.Race && currentState.CompletedLaps > 1)
                 {
                     pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
                     if (currentState.Position < 4)
@@ -99,6 +104,30 @@ namespace CrewChief.Events
                     else
                     {
                         audioPlayer.queueClip(folderLastLap, 0, this, pearlType, 0.7);
+                    }
+                }
+                if (currentState.Player.GameSimulationTime > 60 && !played2mins &&
+                    currentState.SessionTimeRemaining / 60 < 2)
+                {
+                    played2mins = true;
+                    played5mins = true;
+                    played10mins = true;
+                    played15mins = true;
+                    played20mins = true;
+                    playedHalfWayHome = true;
+                    if (isRaceStarted && currentState.Position == 1)
+                    {
+                        // don't add a pearl here - the audio clip already contains encouragement
+                        audioPlayer.queueClip(folder2minsLeading, 0, this, pearlType, 0);
+                    }
+                    else if (isRaceStarted && currentState.Position < 4)
+                    {
+                        // don't add a pearl here - the audio clip already contains encouragement
+                        audioPlayer.queueClip(folder2minsPodium, 0, this, pearlType, 0);
+                    }
+                    else
+                    {
+                        audioPlayer.queueClip(folder2mins, 0, this, pearlType, 0.7);
                     }
                 } if (currentState.Player.GameSimulationTime > 60 && !played5mins &&
                     currentState.SessionTimeRemaining / 60 < 5)
@@ -141,8 +170,11 @@ namespace CrewChief.Events
                     played20mins = true;
                     audioPlayer.queueClip(folder20mins, 0, this, pearlType, 0.7);
                 }
-                else if (currentState.Player.GameSimulationTime > 60 && !playedHalfWayHome && currentState.SessionTimeRemaining < halfTime)
+                else if (currentState.SessionType == (int) Constant.Session.Race && 
+                    currentState.Player.GameSimulationTime > 60 && !playedHalfWayHome
+                    && currentState.SessionTimeRemaining < halfTime)
                 {
+                    // this one sounds weird in practice and qual sessions, so skip it
                     playedHalfWayHome = true;
                     audioPlayer.queueClip(folderHalfWayHome, 0, this, pearlType, 0.7);
                 }

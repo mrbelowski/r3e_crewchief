@@ -36,6 +36,8 @@ namespace CrewChief.Events
 
         private int lapNumberAtLastMessage;
 
+        private Random rand = new Random();
+
         public Position(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -130,25 +132,27 @@ namespace CrewChief.Events
                         }
                         // if we're outside the top ten, maybe play a pearl of wisdom - 50/50 chance, 
                         // scaled by the global multiplier
+
+                        // TODO: replace all this crap with proper position messages for 11 -> 24 + a 'last' message
                         if ((isRaceStarted || currentState.NumberOfLaps > lapNumberAtLastMessage + 3) &&
                             PearlsOfWisdom.enablePearlsOfWisdom && 
-                            !p10orBetter && new Random().NextDouble() > 0.5 * PearlsOfWisdom.pearlsLikelihood)
+                            !p10orBetter && rand.NextDouble() > 0.3 * PearlsOfWisdom.pearlsLikelihood)
                         {
                             if (!isLast && positionAtLastP10OrWorseMessage > currentState.Position + 5)
                             {
                                 // made up 5 places since last message
-                                audioPlayer.queueClip(PearlsOfWisdom.folderKeepItUp, 0, this);
+                                audioPlayer.queueClip(PearlsOfWisdom.folderKeepItUp, rand.Next(0, 30), this);
                                 positionAtLastP10OrWorseMessage = currentState.Position;
                             }
                             else if (isLast || positionAtLastP10OrWorseMessage < currentState.Position - 1)
                             {
                                 // lost 2 or more places since last message
-                                audioPlayer.queueClip(PearlsOfWisdom.folderMustDoBetter, 0, this);
+                                audioPlayer.queueClip(PearlsOfWisdom.folderMustDoBetter, rand.Next(0, 30), this);
                                 positionAtLastP10OrWorseMessage = currentState.Position;
                             }
                             else
                             {
-                                audioPlayer.queueClip(PearlsOfWisdom.folderNeutral, 0, this);
+                                audioPlayer.queueClip(PearlsOfWisdom.folderNeutral, rand.Next(0, 30), this);
                                 positionAtLastP10OrWorseMessage = currentState.Position;
                             }
                         }
