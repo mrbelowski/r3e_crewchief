@@ -11,12 +11,11 @@ namespace CrewChief.Events
     // this class can be replaced
     class RaceTime : AbstractEvent
     {
+        // TODO: separate position & time remaining from "push push push" and "ease off and bring it home safely" messages
         private String folder5mins = "race_time/five_minutes_left";
         private String folder5minsLeading = "race_time/five_minutes_left_leading";
         private String folder5minsPodium = "race_time/five_minutes_left_podium";
         private String folder2mins = "race_time/two_minutes_left";
-        private String folder2minsLeading = "race_time/two_minutes_left_leading";
-        private String folder2minsPodium = "race_time/two_minutes_left_podium";
         // TODO: 2 minutes remaining messages
         //TODO: separate messages depending on the gap
         private String folder10mins = "race_time/ten_minutes_left";
@@ -86,6 +85,7 @@ namespace CrewChief.Events
                     currentState.Position == 1 && currentState.SessionTimeRemaining < currentState.LapTimeBest)
                 {
                     playedLastLap = true;
+                    played2mins = true;
                     played5mins = true;
                     played10mins = true;
                     played15mins = true;
@@ -107,7 +107,7 @@ namespace CrewChief.Events
                     }
                 }
                 if (currentState.Player.GameSimulationTime > 60 && !played2mins &&
-                    currentState.SessionTimeRemaining / 60 < 2)
+                    currentState.SessionTimeRemaining / 60 < 2 && currentState.SessionTimeRemaining / 60 > 1.9)
                 {
                     played2mins = true;
                     played5mins = true;
@@ -115,22 +115,9 @@ namespace CrewChief.Events
                     played15mins = true;
                     played20mins = true;
                     playedHalfWayHome = true;
-                    if (isRaceStarted && currentState.Position == 1)
-                    {
-                        // don't add a pearl here - the audio clip already contains encouragement
-                        audioPlayer.queueClip(folder2minsLeading, 0, this, pearlType, 0);
-                    }
-                    else if (isRaceStarted && currentState.Position < 4)
-                    {
-                        // don't add a pearl here - the audio clip already contains encouragement
-                        audioPlayer.queueClip(folder2minsPodium, 0, this, pearlType, 0);
-                    }
-                    else
-                    {
-                        audioPlayer.queueClip(folder2mins, 0, this, pearlType, 0.7);
-                    }
+                    audioPlayer.queueClip(folder2mins, 0, this, PearlsOfWisdom.PearlType.NONE, 0);
                 } if (currentState.Player.GameSimulationTime > 60 && !played5mins &&
-                    currentState.SessionTimeRemaining / 60 < 5)
+                    currentState.SessionTimeRemaining / 60 < 5 && currentState.SessionTimeRemaining / 60 > 4.9)
                 {
                     played5mins = true;
                     played10mins = true;
@@ -152,20 +139,23 @@ namespace CrewChief.Events
                         audioPlayer.queueClip(folder5mins, 0, this, pearlType, 0.7);
                     }
                 }
-                if (currentState.Player.GameSimulationTime > 60 && !played10mins && currentState.SessionTimeRemaining / 60 < 10 && currentState.SessionTimeRemaining / 60 > 9.9)
+                if (currentState.Player.GameSimulationTime > 60 && !played10mins && 
+                    currentState.SessionTimeRemaining / 60 < 10 && currentState.SessionTimeRemaining / 60 > 9.9)
                 {
                     played10mins = true;
                     played15mins = true;
                     played20mins = true;
                     audioPlayer.queueClip(folder10mins, 0, this, pearlType, 0.7);
                 }
-                if (currentState.Player.GameSimulationTime > 60 && !played15mins && currentState.SessionTimeRemaining / 60 < 15 && currentState.SessionTimeRemaining / 60 > 14.9)
+                if (currentState.Player.GameSimulationTime > 60 && !played15mins &&
+                    currentState.SessionTimeRemaining / 60 < 15 && currentState.SessionTimeRemaining / 60 > 14.9)
                 {
                     played15mins = true;
                     played20mins = true;
                     audioPlayer.queueClip(folder15mins, 0, this, pearlType, 0.7);
                 }
-                if (currentState.Player.GameSimulationTime > 60 && !played20mins && currentState.SessionTimeRemaining / 60 < 20 && currentState.SessionTimeRemaining / 60 > 19.9)
+                if (currentState.Player.GameSimulationTime > 60 && !played20mins &&
+                    currentState.SessionTimeRemaining / 60 < 20 && currentState.SessionTimeRemaining / 60 > 19.9)
                 {
                     played20mins = true;
                     audioPlayer.queueClip(folder20mins, 0, this, pearlType, 0.7);
