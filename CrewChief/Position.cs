@@ -50,6 +50,10 @@ namespace CrewChief.Events
                 {
                     numberOfLapsInLastPlace++;
                 }
+                else
+                {
+                    numberOfLapsInLastPlace = 0;
+                }
                 if (previousPosition == 0 && currentState.Position > 0) {
                     previousPosition = currentState.Position;
                 } else {
@@ -88,7 +92,7 @@ namespace CrewChief.Events
                             {
                                 audioPlayer.queueClip(folderStub + 1, 0, this, pearlType, pearlLikelihood);
                             }
-                            // no p1 for pole - this is in the laptime tracker
+                            // no p1 for pole - this is in the laptime tracker (yuk)
                         }
                         else if (!isLast)
                         {

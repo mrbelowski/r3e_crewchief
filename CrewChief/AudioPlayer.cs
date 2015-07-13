@@ -13,9 +13,14 @@ namespace CrewChief
 {
     class AudioPlayer
     {
-        private Dictionary<String, List<SoundPlayer>> clips = new Dictionary<String, List<SoundPlayer>>();
+        private Boolean channelOpen = false;
 
-        private int queueMonitorInterval = 1000;
+        private Boolean requestChannelOpen = false;
+        private Boolean requestChannelClose = false;
+
+        private readonly TimeSpan queueMonitorInterval = TimeSpan.FromMilliseconds(1000);
+
+        private Dictionary<String, List<SoundPlayer>> clips = new Dictionary<String, List<SoundPlayer>>();
 
         private String soundFolderName = Properties.Settings.Default.sound_files_path;
 
@@ -30,6 +35,8 @@ namespace CrewChief
         private Random random = new Random();
     
         private OrderedDictionary queuedClips = new OrderedDictionary();
+
+        private OrderedDictionary immediateClips = new OrderedDictionary();
 
         static object Lock = new object();
 
@@ -203,47 +210,97 @@ namespace CrewChief
                 backgroundPlayer.Volume = backgroundVolume;
                 setBackgroundSound(dtmPitWindowClosedBackground);
             }
-            while (true) { 
-                Thread.Sleep(queueMonitorInterval);
-                long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                List<String> keysToRemove = new List<String>();
-                List<String> keysToPlay = new List<String>();
-                lock (Lock)
+            var timeLast = DateTime.UtcNow;
+            while (true)
+            {
+                if (requestChannelOpen && !channelOpen)
                 {
-                    if (backgroundVolume > 0 && loadNewBackground && backgroundToLoad != null)
-                    {
-                        Console.WriteLine("Setting background sounds file to  " + backgroundToLoad);
-                        String path = Path.Combine(soundFilesPath, backgroundFilesPath, backgroundToLoad);
-                        backgroundPlayer.Open(new System.Uri(path, System.UriKind.Absolute));
-                        loadNewBackground = false;
-                    }
+                    Console.WriteLine("Requesting channel open");
+                    openRadioChannelInternal();
+                    requestChannelOpen = false;
+                }
+                if (immediateClips.Count > 0)
+                {
+                    Console.WriteLine("Playing immediate clips "+ immediateClips.Keys.ToString());
+                    playQueueContents(immediateClips, false);
+                }
+                if (requestChannelClose && channelOpen)
+                {
+                    Console.WriteLine("Requesting close channel");
+                    closeRadioInternalChannel();
+                    requestChannelClose = false;
+                }
+                var timeNow = DateTime.UtcNow;
+                if (timeNow.Subtract(timeLast) < queueMonitorInterval)
+                {
+                    Thread.Sleep(1);
+                    continue;
+                }
+                if (!channelOpen)
+                {
+                    playQueueContents(queuedClips, true);
+                }
+            }
+        }
 
-                    foreach (String key in queuedClips.Keys)
+        private void playQueueContents(OrderedDictionary queueToPlay, Boolean closeChannelAfterPlaying) {
+            long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            List<String> keysToRemove = new List<String>();
+            List<String> keysToPlay = new List<String>();
+            lock (Lock)
+            {                
+                foreach (String key in queueToPlay.Keys)
+                {
+                    QueuedMessage queuedMessage = (QueuedMessage)queueToPlay[key];
+                    if (queuedMessage.dueTime <= milliseconds)
                     {
-                        QueuedMessage queuedMessage = (QueuedMessage)queuedClips[key];
-                        if (queuedMessage.dueTime <= milliseconds)
+                        if ((queuedMessage.abstractEvent == null || queuedMessage.abstractEvent.isClipStillValid(key)) &&
+                            !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || playGapFillerMessage()))
                         {
-                            if ((queuedMessage.abstractEvent == null || queuedMessage.abstractEvent.isClipStillValid(key)) &&
-                                !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || playGapFillerMessage()))
-                            {
-                                keysToPlay.Add(key);
-                            }
-                            else
-                            {
-                                Console.WriteLine("Clip " + key + " is not valid");
-                            }
-                            keysToRemove.Add(key);
+                            keysToPlay.Add(key);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Clip " + key + " is not valid");
+                        }
+                        keysToRemove.Add(key);
+                    }
+                }
+                if (keysToPlay.Count > 0)
+                {
+                    if (keysToPlay.Count == 1 && clipIsPearlOfWisdom(keysToPlay[0]) && hasPearlJustBeenPlayed())
+                    {
+                        Console.WriteLine("Rejecting pearl of wisdom " + keysToPlay[0] +
+                            " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds"); return;
+                    }
+                    Boolean oneOrMoreEventsEnabled = false;
+                    foreach (String eventName in keysToPlay)
+                    {
+                        if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) &&
+                            ((QueuedMessage)queuedClips[eventName]).isValid) || enabledSounds.Contains(eventName))
+                        {
+                            oneOrMoreEventsEnabled = true;
                         }
                     }
-                    if (keysToPlay.Count > 0)
+                    if (oneOrMoreEventsEnabled)
                     {
-                        playSounds(keysToPlay, false);
+                        openRadioChannelInternal();
+                        playSounds(keysToPlay);
+                        if (closeChannelAfterPlaying)
+                        {
+                            closeRadioInternalChannel();
+                        }
                     }
-                    foreach (String key in keysToRemove)
+                    else
                     {
-                        Console.WriteLine("Removing {0} from queue", key);
-                        queuedClips.Remove(key);
+                        Console.WriteLine("All events " + String.Join(",", keysToPlay) + " are disabled");
                     }
+                    Console.WriteLine("finished playing");
+                }
+                foreach (String key in keysToRemove)
+                {
+                    Console.WriteLine("Removing {0} from queue", key);
+                    queueToPlay.Remove(key);
                 }
             }
         }
@@ -281,6 +338,32 @@ namespace CrewChief
         public void queueClip(String eventName, QueuedMessage queuedMessage)
         {
             queueClip(eventName, queuedMessage, PearlsOfWisdom.PearlType.NONE, 0);
+        }
+
+        public void openChannel()
+        {
+            requestChannelOpen = true;
+        }
+
+        public void closeChannel()
+        {
+            requestChannelClose = true;
+        }
+
+        public void playClipImmediately(String eventName, QueuedMessage queuedMessage)
+        {
+            lock (Lock)
+            {
+                if (immediateClips.Contains(eventName))
+                {
+                    Console.WriteLine("Clip for event " + eventName + " is already queued, ignoring");
+                    return;
+                }
+                else
+                {
+                    immediateClips.Add(eventName, queuedMessage);
+                }
+            }
         }
 
         public void queueClip(String eventName, QueuedMessage queuedMessage,  PearlsOfWisdom.PearlType pearlType, double pearlMessageProbability)
@@ -325,40 +408,70 @@ namespace CrewChief
                 }
             }
         }
-
-        /**Don't use this unless you *really* have to (like the Green Green Green message). It's only for 
-         cases where the message has to be played *immediately*. This will skip the background sounds (because
-         * the Th. */
-        public void playClipImmediately(String eventName)
-        {
-            Console.WriteLine("Clip " + eventName + " is being forcably played with no queuing");
-            List<String> eventNames = new List<string>();
-            eventNames.Add(eventName);
-            playSounds(eventNames, true);
-        }
     
-        // use blockBackground if this call to play comes from a different Thread to the queue monitor - 
-        // currently only from the playClipImmediately method
-        private void playSounds(List<String> eventNames, Boolean blockBackground) {
-            if (eventNames.Count == 1 && clipIsPearlOfWisdom(eventNames[0]) && hasPearlJustBeenPlayed())
+        private void playSounds(List<String> eventNames) {
+            foreach (String eventName in eventNames)
             {
-                Console.WriteLine("Rejecting pearl of wisdom " + eventNames[0] + 
-                    " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds"); return;
-            }
-            Boolean oneOrMoreEventsEnabled = false;
-            foreach (String eventName in eventNames) 
-            {
-                if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) && 
+                if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) &&
                     ((QueuedMessage) queuedClips[eventName]).isValid) || enabledSounds.Contains(eventName))
                 {
-                    oneOrMoreEventsEnabled = true;
+                    if (clipIsPearlOfWisdom(eventName))
+                    {
+                        if (hasPearlJustBeenPlayed())
+                        {
+                            Console.WriteLine("Rejecting pearl of wisdom " + eventName +
+                                " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds");
+                            continue;
+                        }
+                        else
+                        {
+                            timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
+                        }
+                    }
+                    if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier))
+                    {
+                        foreach (String message in ((QueuedMessage) queuedClips[eventName]).getMessageFolders())
+                        {
+                            List<SoundPlayer> clipsList = clips[message];
+                            int index = random.Next(0, clipsList.Count);
+                            SoundPlayer clip = clipsList[index];
+                            Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
+                            clip.PlaySync();
+                        }
+                    }
+                    else
+                    {
+                        List<SoundPlayer> clipsList = clips[eventName];
+                        int index = random.Next(0, clipsList.Count);
+                        SoundPlayer clip = clipsList[index];
+                        Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
+                        clip.PlaySync();
+                    }                        
+                }
+                else
+                {
+                    Console.WriteLine("Event " + eventName + " is disabled");
                 }
             }
-            if (oneOrMoreEventsEnabled)
+        }
+
+        private void openRadioChannelInternal()
+        {
+            Console.WriteLine("Opening channel, current state is "+ channelOpen);            
+            if (!channelOpen)
             {
+                channelOpen = true;
+                if (backgroundVolume > 0 && loadNewBackground && backgroundToLoad != null)
+                {
+                    Console.WriteLine("Setting background sounds file to  " + backgroundToLoad);
+                    String path = Path.Combine(soundFilesPath, backgroundFilesPath, backgroundToLoad);
+                    backgroundPlayer.Open(new System.Uri(path, System.UriKind.Absolute));
+                    loadNewBackground = false;
+                }
+
                 // this looks like we're doing it the wrong way round but there's a short
                 // delay playing the event sound, so if we kick off the background before the bleep
-                if (!blockBackground && backgroundVolume > 0)
+                if (backgroundVolume > 0)
                 {
                     int backgroundDuration = 0;
                     int backgroundOffset = 0;
@@ -373,72 +486,35 @@ namespace CrewChief
                     backgroundPlayer.Position = TimeSpan.FromSeconds(backgroundOffset);
                     backgroundPlayer.Play();
                 }
-                
+
                 if (enableStartBleep)
                 {
                     List<SoundPlayer> bleeps = clips["start_bleep"];
                     int bleepIndex = random.Next(0, bleeps.Count);
                     bleeps[bleepIndex].PlaySync();
                 }
-                foreach (String eventName in eventNames)
-                {
-                    if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) &&
-                        ((QueuedMessage) queuedClips[eventName]).isValid) || enabledSounds.Contains(eventName))
-                    {
-                        if (clipIsPearlOfWisdom(eventName))
-                        {
-                            if (hasPearlJustBeenPlayed())
-                            {
-                                Console.WriteLine("Rejecting pearl of wisdom " + eventName +
-                                    " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds");
-                                continue;
-                            }
-                            else
-                            {
-                                timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
-                            }
-                        }
-                        if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier))
-                        {
-                            foreach (String message in ((QueuedMessage) queuedClips[eventName]).getMessageFolders())
-                            {
-                                List<SoundPlayer> clipsList = clips[message];
-                                int index = random.Next(0, clipsList.Count);
-                                SoundPlayer clip = clipsList[index];
-                                Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
-                                clip.PlaySync();
-                            }
-                        }
-                        else
-                        {
-                            List<SoundPlayer> clipsList = clips[eventName];
-                            int index = random.Next(0, clipsList.Count);
-                            SoundPlayer clip = clipsList[index];
-                            Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
-                            clip.PlaySync();
-                        }                        
-                    }
-                    else
-                    {
-                        Console.WriteLine("Event " + eventName + " is disabled");
-                    }
-                }
+            }
+            Console.WriteLine("Channel is open");
+        }
+
+        private void closeRadioInternalChannel()
+        {
+            Console.WriteLine("Closing channel, current state is " + channelOpen);
+            if (channelOpen)
+            {
                 if (enableEndBleep)
                 {
                     List<SoundPlayer> bleeps = clips["end_bleep"];
                     int bleepIndex = random.Next(0, bleeps.Count);
                     bleeps[bleepIndex].PlaySync();
                 }
-                if (!blockBackground && backgroundVolume > 0)
+                if (backgroundVolume > 0)
                 {
                     backgroundPlayer.Stop();
-                }   
+                }
+                channelOpen = false;
             }
-            else
-            {
-                Console.WriteLine("All events " + String.Join(",", eventNames) + " are disabled");
-            }
-            Console.WriteLine("finished playing");
+            Console.WriteLine("Channel is closed");
         }
         
         private void openAndCacheClip(String eventName, String file) {

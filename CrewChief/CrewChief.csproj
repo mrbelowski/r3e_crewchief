@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractEvent.cs" />
+    <Compile Include="Spotter.cs" />
     <Compile Include="DamageReporting.cs" />
     <Compile Include="Timings.cs" />
     <Compile Include="QueuedMessage.cs" />

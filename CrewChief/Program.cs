@@ -44,7 +44,6 @@ namespace CrewChief
             var timeReset = DateTime.UtcNow;
             var timeLast = timeReset;
             
-            Console.WriteLine("Looking for RRRE.exe...");
             AudioPlayer audioPlayer = new AudioPlayer();
             audioPlayer.initialise();
             
@@ -59,6 +58,7 @@ namespace CrewChief
             eventsList.Add(new EngineMonitor(audioPlayer));
             eventsList.Add(new Timings(audioPlayer));
             eventsList.Add(new DamageReporting(audioPlayer));
+            eventsList.Add(new Spotter(audioPlayer));
 
             while (true)
             {

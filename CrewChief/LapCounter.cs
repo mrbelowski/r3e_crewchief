@@ -12,6 +12,8 @@ namespace CrewChief.Events
     {
         private String folderGreenGreenGreen = "lap_counter/green_green_green";
 
+        private String folderGetReady = "lap_counter/get_ready";
+
         private String folderLastLap = "lap_counter/last_lap";
     
         private String folderTwoLeft = "lap_counter/two_to_go";
@@ -33,6 +35,7 @@ namespace CrewChief.Events
         private String folderFinishedRaceLast = "lap_counter/finished_race_last";
 
         Boolean playedGreenGreenGreen;
+        Boolean playedGetReady;
 
         Boolean playedFinished;
     
@@ -43,6 +46,7 @@ namespace CrewChief.Events
         protected override void clearStateInternal()
         {
             playedGreenGreenGreen = false;
+            playedGetReady = false;
             playedFinished = false;
         }
 
@@ -53,12 +57,20 @@ namespace CrewChief.Events
         
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
+            if (!playedGetReady && 
+                (currentState.SessionPhase == (int) Constant.SessionPhase.Countdown))
+            {
+                audioPlayer.openChannel();
+                audioPlayer.playClipImmediately(folderGetReady, new QueuedMessage(0, this));
+                playedGetReady = true;
+            }
             if (!playedGreenGreenGreen && 
                 (lastState.SessionPhase == (int) Constant.SessionPhase.Countdown && currentState.SessionPhase == (int) Constant.SessionPhase.Green) ||
                 (lastState.ControlType ==(int) Constant.Control.AI && currentState.ControlType == (int) Constant.Control.Player && 
                 currentState.Player.GameSimulationTime < 20))
             {
-                audioPlayer.playClipImmediately(folderGreenGreenGreen);
+                audioPlayer.playClipImmediately(folderGreenGreenGreen, new QueuedMessage(0, this));
+                audioPlayer.closeChannel();
                 playedGreenGreenGreen = true;
                 setGameTimeRaceTimeOffset(currentState);
             }
