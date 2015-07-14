@@ -9,6 +9,10 @@ namespace CrewChief.Events
 {
     class Spotter : AbstractEvent
     {
+        private int clearMessageExpiresAfter = 2000;
+        // if the audio player is in the middle of another message, this 'immediate' message will have to wait.
+        // If it's older than 1000 milliseconds by the time the player's got round to playing it, it's expired
+        private int holdMessageExpiresAfter = 1000;
         private float carLength = 4.3f;
         private float gapNeededForClear = 0.3f;
         private float minSpeedForSpotterToOperate = 10f;
@@ -72,7 +76,9 @@ namespace CrewChief.Events
                 {
                     if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay)) {
                         channelOpen = false;
-                        audioPlayer.playClipImmediately(folderClear, new QueuedMessage(0, this));
+                        QueuedMessage clearMessage = new QueuedMessage(0, this);
+                        clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderClear, clearMessage);
                         audioPlayer.closeChannel();
                     } else {
                         timeWhenWeThinkWeAreClear = now;
@@ -91,10 +97,16 @@ namespace CrewChief.Events
                             timeOfLastHoldMessage = now;
                             channelOpen = true;
                             audioPlayer.openChannel();
-                            audioPlayer.playClipImmediately(folderHoldYourLine, new QueuedMessage(0, this));
+                            QueuedMessage holdMessage = new QueuedMessage(0, this);
+                            holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                        
+                            audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
                         } else if (now > timeOfLastHoldMessage.Add(repeatHoldFrequency)) {
                             timeOfLastHoldMessage = now;
-                            audioPlayer.playClipImmediately(folderStillThere, new QueuedMessage(0, this));
+                            QueuedMessage stillThereMessage = new QueuedMessage(0, this);
+                            stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+
+                            audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
                         }            
                     }                    
                 }

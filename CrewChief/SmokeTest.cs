@@ -40,11 +40,15 @@ namespace CrewChief.Events
             Console.WriteLine("requesting open channel from client");
             audioPlayer.openChannel();
             Console.WriteLine("playing immediately from client");
-            audioPlayer.playClipImmediately("spotter/hold_your_line", new QueuedMessage(0, this));
+            QueuedMessage holdMessage = new QueuedMessage(0, this);
+            holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + 3000;
+            audioPlayer.playClipImmediately("spotter/hold_your_line", holdMessage);
             Thread.Sleep(500);
             audioPlayer.queueClip("mandatory_pit_stops/pit_now", 0, this);
             Thread.Sleep(5000);
-            audioPlayer.playClipImmediately("spotter/clear", new QueuedMessage(0, this));
+            QueuedMessage clearMessage = new QueuedMessage(0, this);
+            clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + 3000;
+            audioPlayer.playClipImmediately("spotter/clear", clearMessage);
             audioPlayer.closeChannel();
         }
     }

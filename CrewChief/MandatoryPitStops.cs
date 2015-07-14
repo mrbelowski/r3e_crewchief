@@ -114,7 +114,6 @@ namespace CrewChief.Events
                         {
                             onOptions = true;
                             // when we've completed half distance - 1 laps, we need to come in at the end of the current lap
-                            // TODO: this data might be in the block...
                             tyreChangeLap = (int)Math.Floor((double)currentState.NumberOfLaps / 2d) - 1;
                         }
                         else if (currentState.TireType == (int)Constant.TireType.Prime)

@@ -25,15 +25,16 @@ namespace CrewChief
         // todo: check they're valid in the constructors
         public Boolean isValid = true;
 
+        public long expiryTime = 0;
+
         public QueuedMessage(int secondsDelay, AbstractEvent abstractEvent) {
             this.dueTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond + (secondsDelay * 1000);
             this.abstractEvent = abstractEvent;
         }
 
         // used for creating a pearl of wisdom message where we need to copy the dueTime from the original
-        public QueuedMessage(long dueTime, AbstractEvent abstractEvent)
+        public QueuedMessage(AbstractEvent abstractEvent)
         {
-            this.dueTime = dueTime;
             this.abstractEvent = abstractEvent;
         }
 

@@ -63,13 +63,6 @@ namespace CrewChief
         private Boolean loadNewBackground = false;
         private String backgroundToLoad;
 
-        // test clips are only played on startup when they're enabled
-        private String[] testClips1 = { "position/p1" };
-
-        private int testClipsDelay = 5000;
-
-        private String[] testClips2 = { "fuel/half_distance_low_fuel", "race_time/twenty_five_minutes"};
-
         private PearlsOfWisdom pearlsOfWisdom;
 
         DateTime timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
@@ -159,34 +152,10 @@ namespace CrewChief
                 ThreadStart work = monitorQueue;
                 Thread thread = new Thread(work);
                 thread.Start();
-                playTestClips();
+                new SmokeTest(this).trigger(new Data.Shared(), new Data.Shared());
             }
             catch (DirectoryNotFoundException e) {
                 Console.WriteLine("Unable to find sounds directory - path: " + soundFolderName);
-            }
-        }
-
-        private void playTestClips()
-        {
-            new SmokeTest(this).trigger(new Data.Shared(), new Data.Shared());
-            // now queue some tests...
-            if (Properties.Settings.Default.play_test_clips_on_startup)
-            {
-                if (testClips1.Length > 0)
-                {
-                    foreach (String testClip in testClips1)
-                    {
-                        queueClip(testClip, 0, null);
-                    }
-                }
-                if (testClipsDelay > 0 && testClips2.Length > 0)
-                {
-                    Thread.Sleep(testClipsDelay);
-                    foreach (String testClip in testClips2)
-                    {
-                        queueClip(testClip, 0, null);
-                    }
-                }
             }
         }
 
@@ -226,7 +195,11 @@ namespace CrewChief
                 }
                 if (immediateClips.Count > 0)
                 {
-                    Console.WriteLine("Playing immediate clips "+ immediateClips.Keys.ToString());
+                    Console.WriteLine("Playing immediate clips");
+                    foreach (String key in immediateClips.Keys)
+                    {
+                        Console.WriteLine(key + ", ");
+                    }
                     playQueueContents(immediateClips, true);
                 }
                 if (requestChannelClose)
@@ -262,7 +235,8 @@ namespace CrewChief
                     if (queuedMessage.dueTime <= milliseconds)
                     {
                         if ((queuedMessage.abstractEvent == null || queuedMessage.abstractEvent.isClipStillValid(key)) &&
-                            !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || playGapFillerMessage()))
+                            !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || playGapFillerMessage()) && 
+                            (queuedMessage.expiryTime == 0  || queuedMessage.expiryTime > milliseconds))
                         {
                             keysToPlay.Add(key);
                         }
@@ -518,14 +492,16 @@ namespace CrewChief
                     }
                     if (pearlPosition == PearlsOfWisdom.PearlMessagePosition.BEFORE)
                     {
-                        queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType),
-                            new QueuedMessage(queuedMessage.dueTime, queuedMessage.abstractEvent));
+                        QueuedMessage pearlQueuedMessage = new QueuedMessage(queuedMessage.abstractEvent);
+                        pearlQueuedMessage.dueTime = queuedMessage.dueTime;
+                        queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType), pearlQueuedMessage);
                     }
                     queuedClips.Add(eventName, queuedMessage);
                     if (pearlPosition == PearlsOfWisdom.PearlMessagePosition.AFTER)
                     {
-                        queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType),
-                            new QueuedMessage(queuedMessage.dueTime, queuedMessage.abstractEvent));
+                        QueuedMessage pearlQueuedMessage = new QueuedMessage(queuedMessage.abstractEvent);
+                        pearlQueuedMessage.dueTime = queuedMessage.dueTime;
+                        queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType), pearlQueuedMessage);
                     }
                 }
             }
