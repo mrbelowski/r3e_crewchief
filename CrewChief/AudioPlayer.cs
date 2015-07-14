@@ -215,9 +215,10 @@ namespace CrewChief
                 var timeNow = DateTime.UtcNow;
                 if (timeNow.Subtract(timeLast) < queueMonitorInterval)
                 {
-                    Thread.Sleep(1);
+                    Thread.Sleep(50);
                     continue;
                 }
+                timeLast = timeNow;
                 playQueueContents(queuedClips, false);
             }
         }
@@ -296,6 +297,8 @@ namespace CrewChief
         private List<String> playSounds(List<String> eventNames, Boolean isImmediateMessages)
         {
             List<String> soundsProcessed = new List<String>();
+            Console.WriteLine("About to process queue contents: " + String.Join(", ", eventNames.ToArray()));
+
             foreach (String eventName in eventNames)
             {
                 // if there's anything in the immediateClips queue, stop processing
@@ -343,7 +346,11 @@ namespace CrewChief
                         Console.WriteLine("Event " + eventName + " is disabled");
                     }
                     soundsProcessed.Add(eventName);
-                }                
+                }
+                else
+                {
+                    Console.WriteLine("we've been interrupted");
+                }               
             }
             Console.WriteLine("Processed " + String.Join(", ", soundsProcessed.ToArray()));
             return soundsProcessed;
@@ -514,6 +521,17 @@ namespace CrewChief
                 if (queuedClips.Contains(eventName))
                 {
                     queuedClips.Remove(eventName);
+                }
+            }
+        }
+
+        public void removeImmediateClip(String eventName)
+        {
+            lock (immediateClips)
+            {
+                if (immediateClips.Contains(eventName))
+                {
+                    immediateClips.Remove(eventName);
                 }
             }
         }
