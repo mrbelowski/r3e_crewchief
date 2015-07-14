@@ -157,5 +157,59 @@ namespace CrewChief.Properties {
                 return ((bool)(this["enable_spotter"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3.5")]
+        public float spotter_car_length {
+            get {
+                return ((float)(this["spotter_car_length"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public float spotter_gap_for_clear {
+            get {
+                return ((float)(this["spotter_gap_for_clear"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("60")]
+        public int time_after_race_start_for_spotter {
+            get {
+                return ((int)(this["time_after_race_start_for_spotter"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int min_speed_for_spotter {
+            get {
+                return ((int)(this["min_speed_for_spotter"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int spotter_hold_repeat_frequency {
+            get {
+                return ((int)(this["spotter_hold_repeat_frequency"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int max_closing_speed_for_spotter {
+            get {
+                return ((int)(this["max_closing_speed_for_spotter"]));
+            }
+        }
     }
 }

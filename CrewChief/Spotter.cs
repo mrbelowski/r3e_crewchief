@@ -9,27 +9,37 @@ namespace CrewChief.Events
 {
     class Spotter : AbstractEvent
     {
-        // TODO: externalise these settings
-
         // if the audio player is in the middle of another message, this 'immediate' message will have to wait.
         // If it's older than 1000 milliseconds by the time the player's got round to playing it, it's expired
         private int clearMessageExpiresAfter = 2000;               
         private int holdMessageExpiresAfter = 1000;
-        private float carLength = 3.5f;
-        private float gapNeededForClear = 1.0f;
-        private float minSpeedForSpotterToOperate = 10f;
-        
-        private Boolean channelOpen;
+
+        // how long is a car? we use 3.5 meters by default here. Too long and we'll get 'hold your line' messages
+        // when we're clearly directly behind the car
+        private float carLength = Properties.Settings.Default.spotter_car_length;
+
+        // before saying 'clear', we need to be carLength + this value from the other car
+        private float gapNeededForClear = Properties.Settings.Default.spotter_gap_for_clear;
+
+        // don't play spotter messages if we're going < 10ms
+        private float minSpeedForSpotterToOperate = Properties.Settings.Default.min_speed_for_spotter;
 
         // if the closing speed is > 10ms (about 17mph) then don't trigger spotter messages - 
         // this prevents them being triggered when passing stationary cars
-        private float maxClosingSpeed = 10;
+        private float maxClosingSpeed = Properties.Settings.Default.max_closing_speed_for_spotter;
+
+        // don't activate the spotter unless this many seconds have elapsed (race starts are messy)
+        private int timeAfterRaceStartToActivate = Properties.Settings.Default.time_after_race_start_for_spotter;
+
+        // say "still there" every 3 seconds
+        private TimeSpan repeatHoldFrequency = TimeSpan.FromSeconds(Properties.Settings.Default.spotter_hold_repeat_frequency);
+
+        private Boolean channelOpen;
 
         private String folderClear = "spotter/clear";
         private String folderHoldYourLine = "spotter/hold_your_line";
         private String folderStillThere = "spotter/still_there";
 
-        private TimeSpan repeatHoldFrequency = TimeSpan.FromSeconds(3);
         // don't play 'clear' messages unless we've actually been clear for 0.5 seconds
         private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(500);
 
@@ -65,7 +75,7 @@ namespace CrewChief.Events
                 return;
             }
 
-            if (isRaceStarted && currentState.Player.GameSimulationTime > 20 && speed > minSpeedForSpotterToOperate)
+            if (isRaceStarted && currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate && speed > minSpeedForSpotterToOperate)
             {
                 // if we think there's already a car along side, add a little to the car length so we're
                 // sure it's gone before calling clear

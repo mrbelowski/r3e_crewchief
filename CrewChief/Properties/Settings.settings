@@ -47,5 +47,23 @@
     <Setting Name="enable_spotter" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="spotter_car_length" Type="System.Single" Scope="Application">
+      <Value Profile="(Default)">3.5</Value>
+    </Setting>
+    <Setting Name="spotter_gap_for_clear" Type="System.Single" Scope="Application">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="time_after_race_start_for_spotter" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">60</Value>
+    </Setting>
+    <Setting Name="min_speed_for_spotter" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="spotter_hold_repeat_frequency" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
+    <Setting Name="max_closing_speed_for_spotter" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
