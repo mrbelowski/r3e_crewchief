@@ -275,7 +275,7 @@ namespace CrewChief
                     }
                     else
                     {
-                        Console.WriteLine("All events " + String.Join(",", keysToPlay) + " are disabled");
+                        Console.WriteLine("All events are disabled");
                     }
                     // only close the channel if we've processed the entire queue
                     /*Console.WriteLine("Can we close? " + !isImmediateMessages + ", " + soundsProcessed.Count + ", " + keysToPlay.Count);

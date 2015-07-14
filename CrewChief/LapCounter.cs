@@ -73,12 +73,14 @@ namespace CrewChief.Events
                 audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(folderGetReady, new QueuedMessage(0, this));
                 playedGetReady = true;
+                audioPlayer.closeChannel();
             }
             if (!playedGreenGreenGreen && 
                 (lastState.SessionPhase == (int) Constant.SessionPhase.Countdown && currentState.SessionPhase == (int) Constant.SessionPhase.Green) ||
                 (lastState.ControlType ==(int) Constant.Control.AI && currentState.ControlType == (int) Constant.Control.Player && 
                 currentState.Player.GameSimulationTime < 20))
             {
+                audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(folderGreenGreenGreen, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
                 playedGreenGreenGreen = true;

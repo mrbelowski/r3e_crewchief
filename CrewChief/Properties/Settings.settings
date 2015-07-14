@@ -9,7 +9,7 @@
       <Value Profile="(Default)">background_sounds</Value>
     </Setting>
     <Setting Name="background_volume" Type="System.Single" Scope="Application">
-      <Value Profile="(Default)">0.4</Value>
+      <Value Profile="(Default)">0.25</Value>
     </Setting>
     <Setting Name="play_test_clips_on_startup" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">False</Value>

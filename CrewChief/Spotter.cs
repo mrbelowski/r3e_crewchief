@@ -9,12 +9,14 @@ namespace CrewChief.Events
 {
     class Spotter : AbstractEvent
     {
-        private int clearMessageExpiresAfter = 2000;
+        // TODO: externalise these settings
+
         // if the audio player is in the middle of another message, this 'immediate' message will have to wait.
         // If it's older than 1000 milliseconds by the time the player's got round to playing it, it's expired
+        private int clearMessageExpiresAfter = 2000;               
         private int holdMessageExpiresAfter = 1000;
-        private float carLength = 4.3f;
-        private float gapNeededForClear = 0.3f;
+        private float carLength = 3.5f;
+        private float gapNeededForClear = 1.0f;
         private float minSpeedForSpotterToOperate = 10f;
         
         private Boolean channelOpen;
@@ -56,9 +58,14 @@ namespace CrewChief.Events
         {
             float speed = currentState.CarSpeed;
             float deltaFront = currentState.TimeDeltaFront;          
-            float deltaBehind = currentState.TimeDeltaBehind;            
+            float deltaBehind = currentState.TimeDeltaBehind;
+            if (deltaFront < 0 && deltaBehind < 0)
+            {
+                Console.WriteLine("Both deltas are < 0, " + deltaFront + ", " + deltaBehind);
+                return;
+            }
 
-            if (isRaceStarted && speed > minSpeedForSpotterToOperate)
+            if (isRaceStarted && currentState.Player.GameSimulationTime > 20 && speed > minSpeedForSpotterToOperate)
             {
                 // if we think there's already a car along side, add a little to the car length so we're
                 // sure it's gone before calling clear
@@ -74,6 +81,9 @@ namespace CrewChief.Events
 
                 if (channelOpen && !carAlongSideInFront && !carAlongSideBehind) 
                 {
+                    Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / speed);
+                    Console.WriteLine("think we're clear, deltaBehind = " + deltaFront + " time gap = " + carLengthToUse / speed);
+
                     if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay)) {
                         channelOpen = false;
                         QueuedMessage clearMessage = new QueuedMessage(0, this);
@@ -85,13 +95,13 @@ namespace CrewChief.Events
                     }
                 }
                 else if (carAlongSideInFront || carAlongSideBehind)
-                {
+                {                    
                     // check the closing speed before warning
                     float closingSpeedInFront = getClosingSpeed(lastState, currentState, true);
                     float closingSpeedBehind = getClosingSpeed(lastState, currentState, false);
                     if ((carAlongSideInFront && closingSpeedInFront > -1 && closingSpeedInFront < maxClosingSpeed) ||
                         (carAlongSideBehind && closingSpeedBehind > -1 && closingSpeedBehind < maxClosingSpeed))
-                    {                        
+                    {
                         if (!channelOpen)
                         {
                             timeOfLastHoldMessage = now;
