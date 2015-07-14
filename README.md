@@ -27,6 +27,8 @@ For version 1.6 there are lots of new things but it's mostly filling in the blan
 
 For version 1.8 I've added compound messages to assemble lap times and stuff. Doing this always sounds robotic and my attempt is no different...
 
+For version 1.9 there's a crude spotter (it doesn't now which side the overlapping car is on). This is enabled by default but it's still being tweaked. If it annoys or misleads it can be turned off in the Crewchief.exe.config - enable_spotter.
+
 Changes
 -------
 

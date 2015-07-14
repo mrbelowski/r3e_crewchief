@@ -133,13 +133,13 @@ namespace CrewChief.Events
                     int estimatedFuelLapsLeft = (int)Math.Floor(currentState.FuelLeft / averageUsagePerLap);                        
                     if (currentState.CompletedLaps == halfDistance)
                     {
-                        if (estimatedFuelLapsLeft > halfDistance)
+                        if (estimatedFuelLapsLeft < halfDistance && currentState.FuelLeft / fuelAfter15Seconds < 0.6)
                         {
-                            audioPlayer.queueClip(folderHalfDistanceGoodFuel, 0, this);
+                            audioPlayer.queueClip(folderHalfDistanceLowFuel, 0, this);
                         }
                         else
                         {
-                            audioPlayer.queueClip(folderHalfDistanceLowFuel, 0, this);
+                            audioPlayer.queueClip(folderHalfDistanceGoodFuel, 0, this);
                         }
                     }
                     else if (estimatedFuelLapsLeft == 4)
@@ -195,7 +195,8 @@ namespace CrewChief.Events
                         currentState.SessionTimeRemaining > halfTime - 10)
                     {
                         playedHalfTimeFuelEstimate = true;
-                        if (averageUsagePerMinute * halfTime / 60 > currentState.FuelLeft) 
+                        if (averageUsagePerMinute * halfTime / 60 > currentState.FuelLeft 
+                            && currentState.FuelLeft / fuelAfter15Seconds < 0.6) 
                         {
                             audioPlayer.queueClip(folderHalfDistanceLowFuel, 0, this);
                         }
