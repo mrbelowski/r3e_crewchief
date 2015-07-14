@@ -148,5 +148,14 @@ namespace CrewChief.Properties {
                 return ((bool)(this["use_sweary_messages"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enable_spotter {
+            get {
+                return ((bool)(this["enable_spotter"]));
+            }
+        }
     }
 }

@@ -24,6 +24,8 @@ namespace CrewChief
 
         private readonly TimeSpan _timeInterval = TimeSpan.FromMilliseconds(Properties.Settings.Default.update_interval);
 
+        private Boolean enableSpotter = Properties.Settings.Default.enable_spotter;
+
         private List<AbstractEvent> eventsList = new List<AbstractEvent>();
 
         Shared lastState;
@@ -58,7 +60,11 @@ namespace CrewChief
             eventsList.Add(new EngineMonitor(audioPlayer));
             eventsList.Add(new Timings(audioPlayer));
             eventsList.Add(new DamageReporting(audioPlayer));
-            eventsList.Add(new Spotter(audioPlayer));
+            if (enableSpotter)
+            {
+                Console.WriteLine("Enabling spotter");
+                eventsList.Add(new Spotter(audioPlayer));
+            }
 
             while (true)
             {

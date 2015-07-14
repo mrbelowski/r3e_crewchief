@@ -191,7 +191,8 @@ namespace CrewChief.Events
                     }
                     int estimatedFuelMinutesLeft = (int)Math.Floor(currentState.FuelLeft / averageUsagePerMinute);
 
-                    if (!playedHalfTimeFuelEstimate && currentState.SessionTimeRemaining < halfTime)
+                    if (!playedHalfTimeFuelEstimate && currentState.SessionTimeRemaining < halfTime && 
+                        currentState.SessionTimeRemaining > halfTime - 10)
                     {
                         playedHalfTimeFuelEstimate = true;
                         if (averageUsagePerMinute * halfTime / 60 > currentState.FuelLeft) 
