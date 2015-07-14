@@ -9,12 +9,27 @@ namespace CrewChief.Events
 {
     class Spotter : AbstractEvent
     {
-        private float carLength = 4.5f;
+        private float carLength = 4.3f;
+        private float gapNeededForClear = 0.3f;
+        private float minSpeedForSpotterToOperate = 10f;
+        
         private Boolean channelOpen;
 
-        private int repeatHoldFrequency = 3;
+        // if the closing speed is > 10ms (about 17mph) then don't trigger spotter messages - 
+        // this prevents them being triggered when passing stationary cars
+        private float maxClosingSpeed = 10;
+
         private String folderClear = "spotter/clear";
         private String folderHoldYourLine = "spotter/hold_your_line";
+        private String folderStillThere = "spotter/still_there";
+
+        private TimeSpan repeatHoldFrequency = TimeSpan.FromSeconds(3);
+        // don't play 'clear' messages unless we've actually been clear for 0.5 seconds
+        private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(500);
+
+        private DateTime timeOfLastHoldMessage;
+
+        private DateTime timeWhenWeThinkWeAreClear;
 
         public Spotter(AudioPlayer audioPlayer)
         {
@@ -24,6 +39,8 @@ namespace CrewChief.Events
         protected override void clearStateInternal()
         {
             channelOpen = false;
+            timeOfLastHoldMessage = DateTime.Now;
+            timeWhenWeThinkWeAreClear = DateTime.Now;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -34,32 +51,78 @@ namespace CrewChief.Events
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             float speed = currentState.CarSpeed;
-            float deltaFront = currentState.TimeDeltaFront;
-            float deltaBehind = currentState.TimeDeltaBehind;
+            float deltaFront = currentState.TimeDeltaFront;          
+            float deltaBehind = currentState.TimeDeltaBehind;            
 
-            if (isRaceStarted && speed > 10)
+            if (isRaceStarted && speed > minSpeedForSpotterToOperate)
             {
-                Boolean carAlongSide = (deltaFront > -1 && carLength / speed > deltaFront) || 
-                    (deltaBehind > -1 && carLength / speed > deltaBehind);
-                
-                if (channelOpen && !carAlongSide)
+                // if we think there's already a car along side, add a little to the car length so we're
+                // sure it's gone before calling clear
+                float carLengthToUse = carLength;
+                if (channelOpen)
                 {
-                    channelOpen = false;
-                    audioPlayer.playClipImmediately(folderClear, new QueuedMessage(0, this));
-                    audioPlayer.closeChannel();
-                } 
-                else if (!channelOpen && carAlongSide)
+                    carLengthToUse += gapNeededForClear;
+                }
+
+                Boolean carAlongSideInFront = deltaFront > -1 && carLengthToUse / speed > deltaFront;
+                Boolean carAlongSideBehind = deltaBehind > -1 && carLengthToUse / speed > deltaBehind;
+                DateTime now = DateTime.Now;
+
+                if (channelOpen && !carAlongSideInFront && !carAlongSideBehind) 
                 {
-                    channelOpen = true;
-                    audioPlayer.openChannel();
-                    // todo: repeats
-                    audioPlayer.playClipImmediately(folderHoldYourLine, new QueuedMessage(0, this));
+                    if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay)) {
+                        channelOpen = false;
+                        audioPlayer.playClipImmediately(folderClear, new QueuedMessage(0, this));
+                        audioPlayer.closeChannel();
+                    } else {
+                        timeWhenWeThinkWeAreClear = now;
+                    }
+                }
+                else if (carAlongSideInFront || carAlongSideBehind)
+                {
+                    // check the closing speed before warning
+                    float closingSpeedInFront = getClosingSpeed(lastState, currentState, true);
+                    float closingSpeedBehind = getClosingSpeed(lastState, currentState, false);
+                    if ((carAlongSideInFront && closingSpeedInFront > -1 && closingSpeedInFront < maxClosingSpeed) ||
+                        (carAlongSideBehind && closingSpeedBehind > -1 && closingSpeedBehind < maxClosingSpeed))
+                    {                        
+                        if (!channelOpen)
+                        {
+                            timeOfLastHoldMessage = now;
+                            channelOpen = true;
+                            audioPlayer.openChannel();
+                            audioPlayer.playClipImmediately(folderHoldYourLine, new QueuedMessage(0, this));
+                        } else if (now > timeOfLastHoldMessage.Add(repeatHoldFrequency)) {
+                            timeOfLastHoldMessage = now;
+                            audioPlayer.playClipImmediately(folderStillThere, new QueuedMessage(0, this));
+                        }            
+                    }                    
                 }
             }
             else if (channelOpen)
             {
                 channelOpen = false;
                 audioPlayer.closeChannel();
+            }
+        }
+
+        private float getClosingSpeed(Shared lastState, Shared currentState, Boolean front)
+        {
+            float timeElapsed = (float)currentState.Player.GameSimulationTime - (float)lastState.Player.GameSimulationTime;
+            if (front)
+            {
+                if (timeElapsed <= 0 || lastState.TimeDeltaFront == -1 || currentState.TimeDeltaFront == -1)
+                {
+                    return -1;
+                }
+                return ((currentState.TimeDeltaFront / currentState.CarSpeed) - (lastState.TimeDeltaFront / lastState.CarSpeed)) / timeElapsed;
+            } else
+            {
+                if (timeElapsed <= 0 || lastState.TimeDeltaBehind == -1 || currentState.TimeDeltaBehind == -1)
+                {
+                    return -1;
+                }
+                return ((currentState.TimeDeltaBehind / currentState.CarSpeed) - (lastState.TimeDeltaBehind / lastState.CarSpeed)) / timeElapsed;
             }
         }
     }

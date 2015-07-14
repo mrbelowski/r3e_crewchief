@@ -17,6 +17,7 @@ namespace CrewChief
 
         private Boolean requestChannelOpen = false;
         private Boolean requestChannelClose = false;
+        private Boolean holdChannelOpen = false;
 
         private readonly TimeSpan queueMonitorInterval = TimeSpan.FromMilliseconds(1000);
 
@@ -37,8 +38,6 @@ namespace CrewChief
         private OrderedDictionary queuedClips = new OrderedDictionary();
 
         private OrderedDictionary immediateClips = new OrderedDictionary();
-
-        static object Lock = new object();
 
         List<String> enabledSounds = new List<String>();
 
@@ -213,22 +212,27 @@ namespace CrewChief
             var timeLast = DateTime.UtcNow;
             while (true)
             {
-                if (requestChannelOpen && !channelOpen)
+                if (requestChannelOpen)
                 {
                     Console.WriteLine("Requesting channel open");
                     openRadioChannelInternal();
                     requestChannelOpen = false;
+                    holdChannelOpen = true;
                 }
                 if (immediateClips.Count > 0)
                 {
                     Console.WriteLine("Playing immediate clips "+ immediateClips.Keys.ToString());
-                    playQueueContents(immediateClips, false);
+                    playQueueContents(immediateClips, true);
                 }
-                if (requestChannelClose && channelOpen)
+                if (requestChannelClose)
                 {
                     Console.WriteLine("Requesting close channel");
-                    closeRadioInternalChannel();
+                    if (channelOpen && queuedClips.Count == 0)
+                    {
+                        closeRadioInternalChannel();
+                    }
                     requestChannelClose = false;
+                    holdChannelOpen = false;
                 }
                 var timeNow = DateTime.UtcNow;
                 if (timeNow.Subtract(timeLast) < queueMonitorInterval)
@@ -236,18 +240,16 @@ namespace CrewChief
                     Thread.Sleep(1);
                     continue;
                 }
-                if (!channelOpen)
-                {
-                    playQueueContents(queuedClips, true);
-                }
+                playQueueContents(queuedClips, false);
             }
         }
 
-        private void playQueueContents(OrderedDictionary queueToPlay, Boolean closeChannelAfterPlaying) {
+        private void playQueueContents(OrderedDictionary queueToPlay, Boolean isImmediateMessages)
+        {
             long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            List<String> keysToRemove = new List<String>();
             List<String> keysToPlay = new List<String>();
-            lock (Lock)
+            List<String> soundsProcessed = new List<String>();
+            lock (queueToPlay)
             {                
                 foreach (String key in queueToPlay.Keys)
                 {
@@ -262,42 +264,49 @@ namespace CrewChief
                         else
                         {
                             Console.WriteLine("Clip " + key + " is not valid");
+                            soundsProcessed.Add(key);
                         }
-                        keysToRemove.Add(key);
                     }
                 }
                 if (keysToPlay.Count > 0)
                 {
+                    Boolean oneOrMoreEventsEnabled = false;
                     if (keysToPlay.Count == 1 && clipIsPearlOfWisdom(keysToPlay[0]) && hasPearlJustBeenPlayed())
                     {
                         Console.WriteLine("Rejecting pearl of wisdom " + keysToPlay[0] +
-                            " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds"); return;
+                            " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds");
+                        soundsProcessed.Add(keysToPlay[0]);
                     }
-                    Boolean oneOrMoreEventsEnabled = false;
-                    foreach (String eventName in keysToPlay)
+                    else
                     {
-                        if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) &&
-                            ((QueuedMessage)queuedClips[eventName]).isValid) || enabledSounds.Contains(eventName))
+                        foreach (String eventName in keysToPlay)
                         {
-                            oneOrMoreEventsEnabled = true;
+                            if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) &&
+                                ((QueuedMessage)queuedClips[eventName]).isValid) || enabledSounds.Contains(eventName))
+                            {
+                                oneOrMoreEventsEnabled = true;
+                            }
                         }
-                    }
+                    }                   
+                    
                     if (oneOrMoreEventsEnabled)
                     {
                         openRadioChannelInternal();
-                        playSounds(keysToPlay);
-                        if (closeChannelAfterPlaying)
-                        {
-                            closeRadioInternalChannel();
-                        }
+                        soundsProcessed.AddRange(playSounds(keysToPlay, isImmediateMessages));                        
                     }
                     else
                     {
                         Console.WriteLine("All events " + String.Join(",", keysToPlay) + " are disabled");
                     }
+                    // only close the channel if we've processed the entire queue
+                    Console.WriteLine("Can we close? " + !isImmediateMessages + ", " + soundsProcessed.Count + ", " + keysToPlay.Count);
+                    if (!isImmediateMessages && soundsProcessed.Count == keysToPlay.Count && !holdChannelOpen)
+                    {
+                        closeRadioInternalChannel();
+                    }
                     Console.WriteLine("finished playing");
                 }
-                foreach (String key in keysToRemove)
+                foreach (String key in soundsProcessed)
                 {
                     Console.WriteLine("Removing {0} from queue", key);
                     queueToPlay.Remove(key);
@@ -305,134 +314,45 @@ namespace CrewChief
             }
         }
 
-        private Boolean playGapFillerMessage()
+        private List<String> playSounds(List<String> eventNames, Boolean isImmediateMessages)
         {
-            return queuedClips.Count == 1 || (queuedClips.Count == 2 && random.Next() > 0.5);
-        }
-
-        public void close() {
-            foreach (KeyValuePair<string, List<SoundPlayer>> entry in clips)
-            {
-                foreach (SoundPlayer clip in entry.Value)
-                {
-                    clip.Stop();
-                    clips.Remove(entry.Key);
-                }
-            }
-        }
-
-        public void queueClip(String eventName, int secondsDelay, AbstractEvent abstractEvent)
-        {
-            queueClip(eventName, secondsDelay, abstractEvent, PearlsOfWisdom.PearlType.NONE, 0);
-        }
-
-        // we pass in the event which triggered this clip so that we can query the event before playing the
-        // clip to check if it's still valid against the latest game state. This is necessary for clips queued
-        // with non-zero delays (e.g. you might have crossed the start / finish line between the clip being 
-        // queued and it being played)
-        public void queueClip(String eventName, int secondsDelay, AbstractEvent abstractEvent, 
-            PearlsOfWisdom.PearlType pearlType, double pearlMessageProbability) {
-            queueClip(eventName, new QueuedMessage(secondsDelay, abstractEvent), pearlType, pearlMessageProbability);
-        }
-
-        public void queueClip(String eventName, QueuedMessage queuedMessage)
-        {
-            queueClip(eventName, queuedMessage, PearlsOfWisdom.PearlType.NONE, 0);
-        }
-
-        public void openChannel()
-        {
-            requestChannelOpen = true;
-        }
-
-        public void closeChannel()
-        {
-            requestChannelClose = true;
-        }
-
-        public void playClipImmediately(String eventName, QueuedMessage queuedMessage)
-        {
-            lock (Lock)
-            {
-                if (immediateClips.Contains(eventName))
-                {
-                    Console.WriteLine("Clip for event " + eventName + " is already queued, ignoring");
-                    return;
-                }
-                else
-                {
-                    immediateClips.Add(eventName, queuedMessage);
-                }
-            }
-        }
-
-        public void queueClip(String eventName, QueuedMessage queuedMessage,  PearlsOfWisdom.PearlType pearlType, double pearlMessageProbability)
-        {
-            lock (Lock)
-            {
-                if (queuedClips.Contains(eventName))
-                {
-                    Console.WriteLine("Clip for event " + eventName + " is already queued, ignoring");
-                    return;
-                }
-                else
-                {
-                    Console.WriteLine("Queuing clip for event " + eventName);
-                    PearlsOfWisdom.PearlMessagePosition pearlPosition = PearlsOfWisdom.PearlMessagePosition.NONE;
-                    if (pearlType != PearlsOfWisdom.PearlType.NONE && checkPearlOfWisdomValid(pearlType))
-                    {
-                        pearlPosition = pearlsOfWisdom.getMessagePosition(pearlMessageProbability);
-                    }
-                    if (pearlPosition == PearlsOfWisdom.PearlMessagePosition.BEFORE)
-                    {
-                        queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType),
-                            new QueuedMessage(queuedMessage.dueTime, queuedMessage.abstractEvent));
-                    }
-                    queuedClips.Add(eventName, queuedMessage);
-                    if (pearlPosition == PearlsOfWisdom.PearlMessagePosition.AFTER)
-                    {
-                        queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType),
-                            new QueuedMessage(queuedMessage.dueTime, queuedMessage.abstractEvent));
-                    }
-                }
-            }
-        }
-
-        public void removeQueuedClip(String eventName)
-        {
-            lock (Lock)
-            {
-                if (queuedClips.Contains(eventName))
-                {
-                    queuedClips.Remove(eventName);
-                }
-            }
-        }
-    
-        private void playSounds(List<String> eventNames) {
+            List<String> soundsProcessed = new List<String>();
             foreach (String eventName in eventNames)
             {
-                if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) &&
-                    ((QueuedMessage) queuedClips[eventName]).isValid) || enabledSounds.Contains(eventName))
+                // if there's anything in the immediateClips queue, stop processing
+                if (isImmediateMessages || immediateClips.Count == 0)
                 {
-                    if (clipIsPearlOfWisdom(eventName))
+                    if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) &&
+                    ((QueuedMessage)queuedClips[eventName]).isValid) || enabledSounds.Contains(eventName))
                     {
-                        if (hasPearlJustBeenPlayed())
+                        if (clipIsPearlOfWisdom(eventName))
                         {
-                            Console.WriteLine("Rejecting pearl of wisdom " + eventName +
-                                " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds");
-                            continue;
+                            if (hasPearlJustBeenPlayed())
+                            {
+                                Console.WriteLine("Rejecting pearl of wisdom " + eventName +
+                                    " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds");
+                                soundsProcessed.Add(eventName);
+                                continue;
+                            }
+                            else
+                            {
+                                timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
+                            }
+                        }
+                        if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier))
+                        {
+                            foreach (String message in ((QueuedMessage)queuedClips[eventName]).getMessageFolders())
+                            {
+                                List<SoundPlayer> clipsList = clips[message];
+                                int index = random.Next(0, clipsList.Count);
+                                SoundPlayer clip = clipsList[index];
+                                Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
+                                clip.PlaySync();
+                            }
                         }
                         else
                         {
-                            timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
-                        }
-                    }
-                    if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier))
-                    {
-                        foreach (String message in ((QueuedMessage) queuedClips[eventName]).getMessageFolders())
-                        {
-                            List<SoundPlayer> clipsList = clips[message];
+                            List<SoundPlayer> clipsList = clips[eventName];
                             int index = random.Next(0, clipsList.Count);
                             SoundPlayer clip = clipsList[index];
                             Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
@@ -441,23 +361,18 @@ namespace CrewChief
                     }
                     else
                     {
-                        List<SoundPlayer> clipsList = clips[eventName];
-                        int index = random.Next(0, clipsList.Count);
-                        SoundPlayer clip = clipsList[index];
-                        Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
-                        clip.PlaySync();
-                    }                        
-                }
-                else
-                {
-                    Console.WriteLine("Event " + eventName + " is disabled");
-                }
+                        Console.WriteLine("Event " + eventName + " is disabled");
+                    }
+                    soundsProcessed.Add(eventName);
+                }                
             }
+            Console.WriteLine("Processed " + String.Join(", ", soundsProcessed.ToArray()));
+            return soundsProcessed;
         }
 
         private void openRadioChannelInternal()
         {
-            Console.WriteLine("Opening channel, current state is "+ channelOpen);            
+            Console.WriteLine("Opening channel, current state is " + channelOpen);
             if (!channelOpen)
             {
                 channelOpen = true;
@@ -516,7 +431,111 @@ namespace CrewChief
             }
             Console.WriteLine("Channel is closed");
         }
-        
+
+        private Boolean playGapFillerMessage()
+        {
+            return queuedClips.Count == 1 || (queuedClips.Count == 2 && random.Next() > 0.5);
+        }
+
+        public void close() {
+            foreach (KeyValuePair<string, List<SoundPlayer>> entry in clips)
+            {
+                foreach (SoundPlayer clip in entry.Value)
+                {
+                    clip.Stop();
+                    clips.Remove(entry.Key);
+                }
+            }
+        }
+
+        public void queueClip(String eventName, int secondsDelay, AbstractEvent abstractEvent)
+        {
+            queueClip(eventName, secondsDelay, abstractEvent, PearlsOfWisdom.PearlType.NONE, 0);
+        }
+
+        // we pass in the event which triggered this clip so that we can query the event before playing the
+        // clip to check if it's still valid against the latest game state. This is necessary for clips queued
+        // with non-zero delays (e.g. you might have crossed the start / finish line between the clip being 
+        // queued and it being played)
+        public void queueClip(String eventName, int secondsDelay, AbstractEvent abstractEvent, 
+            PearlsOfWisdom.PearlType pearlType, double pearlMessageProbability) {
+            queueClip(eventName, new QueuedMessage(secondsDelay, abstractEvent), pearlType, pearlMessageProbability);
+        }
+
+        public void queueClip(String eventName, QueuedMessage queuedMessage)
+        {
+            queueClip(eventName, queuedMessage, PearlsOfWisdom.PearlType.NONE, 0);
+        }
+
+        public void openChannel()
+        {
+            requestChannelOpen = true;
+        }
+
+        public void closeChannel()
+        {
+            requestChannelClose = true;
+        }
+
+        public void playClipImmediately(String eventName, QueuedMessage queuedMessage)
+        {
+            lock (immediateClips)
+            {
+                if (immediateClips.Contains(eventName))
+                {
+                    Console.WriteLine("Clip for event " + eventName + " is already queued, ignoring");
+                    return;
+                }
+                else
+                {
+                    immediateClips.Add(eventName, queuedMessage);
+                }
+            }
+        }
+
+        public void queueClip(String eventName, QueuedMessage queuedMessage,  PearlsOfWisdom.PearlType pearlType, double pearlMessageProbability)
+        {
+            lock (queuedClips)
+            {
+                if (queuedClips.Contains(eventName))
+                {
+                    Console.WriteLine("Clip for event " + eventName + " is already queued, ignoring");
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Queuing clip for event " + eventName);
+                    PearlsOfWisdom.PearlMessagePosition pearlPosition = PearlsOfWisdom.PearlMessagePosition.NONE;
+                    if (pearlType != PearlsOfWisdom.PearlType.NONE && checkPearlOfWisdomValid(pearlType))
+                    {
+                        pearlPosition = pearlsOfWisdom.getMessagePosition(pearlMessageProbability);
+                    }
+                    if (pearlPosition == PearlsOfWisdom.PearlMessagePosition.BEFORE)
+                    {
+                        queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType),
+                            new QueuedMessage(queuedMessage.dueTime, queuedMessage.abstractEvent));
+                    }
+                    queuedClips.Add(eventName, queuedMessage);
+                    if (pearlPosition == PearlsOfWisdom.PearlMessagePosition.AFTER)
+                    {
+                        queuedClips.Add(PearlsOfWisdom.getMessageFolder(pearlType),
+                            new QueuedMessage(queuedMessage.dueTime, queuedMessage.abstractEvent));
+                    }
+                }
+            }
+        }
+
+        public void removeQueuedClip(String eventName)
+        {
+            lock (queuedClips)
+            {
+                if (queuedClips.Contains(eventName))
+                {
+                    queuedClips.Remove(eventName);
+                }
+            }
+        }
+            
         private void openAndCacheClip(String eventName, String file) {
             SoundPlayer clip = new SoundPlayer(file);
             clip.Load();

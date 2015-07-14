@@ -34,12 +34,14 @@ namespace CrewChief.Events
             audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
                                         new QueuedMessage("lap_times/gap_intro", "lap_times/gap_outro_off_pace",
                                             TimeSpan.FromMilliseconds(new Random().Next(1000, 4000)), 5, this));*/
-            Thread.Sleep(1000);
-            Console.WriteLine("**************************");
+            audioPlayer.queueClip(folderTest, 0, this);
+            Thread.Sleep(1500);
             audioPlayer.openChannel();
-            Thread.Sleep(1000);
-            audioPlayer.playClipImmediately(folderTest, new QueuedMessage(0, this));
-            Thread.Sleep(1000);
+            audioPlayer.playClipImmediately("spotter/hold_your_line", new QueuedMessage(0, this));
+            Thread.Sleep(500);
+            audioPlayer.queueClip("mandatory_pit_stops/pit_now", 0, this);
+            Thread.Sleep(5000);
+            audioPlayer.playClipImmediately("spotter/clear", new QueuedMessage(0, this));
             audioPlayer.closeChannel();
         }
     }
