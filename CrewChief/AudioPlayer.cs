@@ -219,6 +219,11 @@ namespace CrewChief
                     requestChannelOpen = false;
                     holdChannelOpen = true;
                 }
+                if (!holdChannelOpen && channelOpen)
+                {
+                    Console.WriteLine("Closing open channel");
+                    closeRadioInternalChannel();
+                }
                 if (immediateClips.Count > 0)
                 {
                     Console.WriteLine("Playing immediate clips "+ immediateClips.Keys.ToString());
@@ -299,11 +304,11 @@ namespace CrewChief
                         Console.WriteLine("All events " + String.Join(",", keysToPlay) + " are disabled");
                     }
                     // only close the channel if we've processed the entire queue
-                    Console.WriteLine("Can we close? " + !isImmediateMessages + ", " + soundsProcessed.Count + ", " + keysToPlay.Count);
+                    /*Console.WriteLine("Can we close? " + !isImmediateMessages + ", " + soundsProcessed.Count + ", " + keysToPlay.Count);
                     if (!isImmediateMessages && soundsProcessed.Count == keysToPlay.Count && !holdChannelOpen)
                     {
                         closeRadioInternalChannel();
-                    }
+                    }*/
                     Console.WriteLine("finished playing");
                 }
                 foreach (String key in soundsProcessed)
@@ -404,6 +409,7 @@ namespace CrewChief
 
                 if (enableStartBleep)
                 {
+                    Console.WriteLine("playing start beep");
                     List<SoundPlayer> bleeps = clips["start_bleep"];
                     int bleepIndex = random.Next(0, bleeps.Count);
                     bleeps[bleepIndex].PlaySync();
