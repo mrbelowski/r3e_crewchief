@@ -39,7 +39,7 @@ namespace CrewChief.Events
 
         Boolean playedFinished;
 
-        Boolean sessionTimeOffsetSet;
+        Boolean sessionLengthSet;
     
         public LapCounter(AudioPlayer audioPlayer) {
             this.audioPlayer = audioPlayer;
@@ -50,7 +50,7 @@ namespace CrewChief.Events
             playedGreenGreenGreen = false;
             playedGetReady = false;
             playedFinished = false;
-            sessionTimeOffsetSet = false;
+            sessionLengthSet = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -60,12 +60,13 @@ namespace CrewChief.Events
         
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (!sessionTimeOffsetSet && currentState.SessionTimeRemaining != -1 && 
+            if (currentState.SessionType == (int) Constant.Session.Race && 
+                !sessionLengthSet && currentState.SessionTimeRemaining > 0 && lastState.SessionTimeRemaining > 0 && 
                 currentState.SessionTimeRemaining < lastState.SessionTimeRemaining)
             {
                 // the session has started
-                setGameTimeRaceTimeOffset(currentState);
-                sessionTimeOffsetSet = true;
+                raceSessionLength = lastState.SessionTimeRemaining;
+                sessionLengthSet = true;
             }
             if (!playedGetReady && 
                 (currentState.SessionPhase == (int) Constant.SessionPhase.Countdown))
@@ -84,12 +85,6 @@ namespace CrewChief.Events
                 audioPlayer.playClipImmediately(folderGreenGreenGreen, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
                 playedGreenGreenGreen = true;
-                // we should have already set this by now
-                if (!sessionTimeOffsetSet)
-                {
-                    setGameTimeRaceTimeOffset(currentState);
-                    sessionTimeOffsetSet = true;
-                }
             }
             if (!playedFinished && isNewLap && currentState.Player.GameSimulationTime > 60 && 
                 currentState.SessionPhase == (int)Constant.SessionPhase.Checkered) 

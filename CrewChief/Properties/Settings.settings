@@ -65,5 +65,8 @@
     <Setting Name="max_closing_speed_for_spotter" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">5</Value>
     </Setting>
+    <Setting Name="spotter_only_when_being_passed" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

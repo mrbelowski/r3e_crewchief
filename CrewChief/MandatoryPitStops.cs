@@ -195,10 +195,10 @@ namespace CrewChief.Events
                     {
                         if (currentState.PitWindowStatus != (int)Constant.PitWindow.StopInProgress &&
                             currentState.PitWindowStatus != (int)Constant.PitWindow.Completed &&
-                            getTimeInRace(currentState) > pitWindowOpenTime * 60 &&
-                            getTimeInRace(currentState) < pitWindowClosedTime * 60)
+                            raceSessionLength - currentState.SessionTimeRemaining > pitWindowOpenTime * 60 &&
+                            raceSessionLength - currentState.SessionTimeRemaining < pitWindowClosedTime * 60)
                         {
-                            double timeLeftToPit = pitWindowClosedTime * 60 - getTimeInRace(currentState);
+                            double timeLeftToPit = pitWindowClosedTime * 60 - (raceSessionLength - currentState.SessionTimeRemaining);
                             if (playPitThisLap && currentState.LapTimeBest + 10 > timeLeftToPit)
                             {
                                 // oh dear, we might have missed the pit window.
@@ -216,26 +216,29 @@ namespace CrewChief.Events
                         }
                     }
                     if (playOpenNow && currentState.SessionTimeRemaining > 0 &&
-                        (getTimeInRace(currentState) > (pitWindowOpenTime * 60) || currentState.PitWindowStatus == (int)Constant.PitWindow.Open))
+                        (raceSessionLength - currentState.SessionTimeRemaining > (pitWindowOpenTime * 60) || 
+                        currentState.PitWindowStatus == (int)Constant.PitWindow.Open))
                     {
                         playOpenNow = false;
                         play1minOpenWarning = false;
                         play2minOpenWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen, 0, this);
                     }
-                    else if (play1minOpenWarning && currentState.SessionTimeRemaining > 0 && getTimeInRace(currentState) > ((pitWindowOpenTime - 1) * 60))
+                    else if (play1minOpenWarning && currentState.SessionTimeRemaining > 0 &&
+                        raceSessionLength - currentState.SessionTimeRemaining > ((pitWindowOpenTime - 1) * 60))
                     {
                         play1minOpenWarning = false;
                         play2minOpenWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen1Min, 0, this);
                     }
-                    else if (play2minOpenWarning && currentState.SessionTimeRemaining > 0 && getTimeInRace(currentState) > ((pitWindowOpenTime - 2) * 60))
+                    else if (play2minOpenWarning && currentState.SessionTimeRemaining > 0 &&
+                        raceSessionLength - currentState.SessionTimeRemaining > ((pitWindowOpenTime - 2) * 60))
                     {
                         play2minOpenWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen2Min, 0, this);
                     }
                     else if (playClosedNow && currentState.SessionTimeRemaining > 0 &&
-                    (getTimeInRace(currentState) > (pitWindowClosedTime * 60)))
+                        raceSessionLength - currentState.SessionTimeRemaining > (pitWindowClosedTime * 60))
                     {
                         playClosedNow = false;
                         playBoxNowMessage = false;
@@ -244,13 +247,15 @@ namespace CrewChief.Events
                         playPitThisLap = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosed, 0, this);
                     }
-                    else if (play1minCloseWarning && currentState.SessionTimeRemaining > 0 && getTimeInRace(currentState) > ((pitWindowClosedTime - 1) * 60))
+                    else if (play1minCloseWarning && currentState.SessionTimeRemaining > 0 &&
+                        raceSessionLength - currentState.SessionTimeRemaining > ((pitWindowClosedTime - 1) * 60))
                     {
                         play1minCloseWarning = false;
                         play2minCloseWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowCloses1min, 0, this);
                     }
-                    else if (play2minCloseWarning && currentState.SessionTimeRemaining > 0 && getTimeInRace(currentState) > ((pitWindowClosedTime - 2) * 60))
+                    else if (play2minCloseWarning && currentState.SessionTimeRemaining > 0 &&
+                        raceSessionLength - currentState.SessionTimeRemaining > ((pitWindowClosedTime - 2) * 60))
                     {
                         play2minCloseWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowCloses2min, 0, this);

@@ -211,5 +211,14 @@ namespace CrewChief.Properties {
                 return ((int)(this["max_closing_speed_for_spotter"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool spotter_only_when_being_passed {
+            get {
+                return ((bool)(this["spotter_only_when_being_passed"]));
+            }
+        }
     }
 }

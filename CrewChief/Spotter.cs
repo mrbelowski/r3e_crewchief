@@ -34,6 +34,8 @@ namespace CrewChief.Events
         // say "still there" every 3 seconds
         private TimeSpan repeatHoldFrequency = TimeSpan.FromSeconds(Properties.Settings.Default.spotter_hold_repeat_frequency);
 
+        private Boolean spotterOnlyWhenBeingPassed = Properties.Settings.Default.spotter_only_when_being_passed;
+
         private Boolean channelOpen;
 
         private String folderClear = "spotter/clear";
@@ -87,8 +89,27 @@ namespace CrewChief.Events
                     carLengthToUse += gapNeededForClear;
                 }
 
+                // initialise to some large value and put the real value in here only if the
+                // time gap suggests we're overlapping
+                float closingSpeedInFront = 9999;
+                float closingSpeedBehind = 9999;
+
                 Boolean carAlongSideInFront = carLengthToUse / speed > deltaFront;
                 Boolean carAlongSideBehind = carLengthToUse / speed > deltaBehind;
+                
+                if (carAlongSideInFront)
+                {
+                    // check the closing speed before warning
+                    closingSpeedInFront = getClosingSpeed(lastState, currentState, true);
+                    carAlongSideInFront = carAlongSideInFront && Math.Abs(closingSpeedInFront) < maxClosingSpeed;
+                }
+                if (carAlongSideBehind)
+                {
+                    // check the closing speed before warning
+                    closingSpeedBehind = getClosingSpeed(lastState, currentState, false);
+                    carAlongSideBehind = carAlongSideBehind && Math.Abs(closingSpeedBehind) < maxClosingSpeed;
+                }
+
                 DateTime now = DateTime.Now;
 
                 if (channelOpen && !carAlongSideInFront && !carAlongSideBehind) 
@@ -111,40 +132,34 @@ namespace CrewChief.Events
                 }
                 else if (carAlongSideInFront || carAlongSideBehind)
                 {                    
-                    // check the closing speed before warning
-                    float closingSpeedInFront = getClosingSpeed(lastState, currentState, true);
-                    float closingSpeedBehind = getClosingSpeed(lastState, currentState, false);
-                    if ((carAlongSideInFront && Math.Abs(closingSpeedInFront) < maxClosingSpeed && 
-                        (closingSpeedInFront > 0 || channelOpen)) ||
-                        (carAlongSideBehind && Math.Abs(closingSpeedBehind) < maxClosingSpeed &&
-                        (closingSpeedBehind > 0 || channelOpen)))
+                    Boolean frontOverlapIsReducing = carAlongSideInFront && closingSpeedInFront > 0;
+                    Boolean rearOverlapIsReducing =  carAlongSideBehind && closingSpeedBehind > 0;
+
+                    if (!channelOpen && (rearOverlapIsReducing || (frontOverlapIsReducing && !spotterOnlyWhenBeingPassed)))
                     {
-                        Console.WriteLine("think we're overlapping, deltaFront = " + deltaFront + " time gap = " +
+                        Console.WriteLine("new overlap, deltaFront = " + deltaFront + " time gap = " +
                             carLengthToUse / speed + " closing speed = " + closingSpeedInFront);
                         Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " +
                             carLengthToUse / speed + " closing speed = " + closingSpeedBehind);
                         Console.WriteLine("race time = " + currentState.Player.GameSimulationTime);
-
-                        if (!channelOpen)
-                        {
-                            timeOfLastHoldMessage = now;
-                            channelOpen = true;
-                            audioPlayer.removeImmediateClip(folderClear);
-                            audioPlayer.removeImmediateClip(folderStillThere);
-                            audioPlayer.openChannel();
-                            QueuedMessage holdMessage = new QueuedMessage(0, this);
-                            holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                        
-                            audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
-                        } else if (now > timeOfLastHoldMessage.Add(repeatHoldFrequency)) {
-                            timeOfLastHoldMessage = now;
-                            audioPlayer.removeImmediateClip(folderHoldYourLine);
-                            audioPlayer.removeImmediateClip(folderClear);
-                            QueuedMessage stillThereMessage = new QueuedMessage(0, this);
-                            stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-
-                            audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
-                        }            
+                        timeOfLastHoldMessage = now;
+                        channelOpen = true;
+                        audioPlayer.removeImmediateClip(folderClear);
+                        audioPlayer.removeImmediateClip(folderStillThere);
+                        audioPlayer.openChannel();
+                        QueuedMessage holdMessage = new QueuedMessage(0, this);
+                        holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
+                    }
+                    else if (now > timeOfLastHoldMessage.Add(repeatHoldFrequency))
+                    {
+                        Console.WriteLine("Still there...");
+                        timeOfLastHoldMessage = now;
+                        audioPlayer.removeImmediateClip(folderHoldYourLine);
+                        audioPlayer.removeImmediateClip(folderClear);
+                        QueuedMessage stillThereMessage = new QueuedMessage(0, this);
+                        stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
                     }                    
                 }
             }
@@ -155,18 +170,26 @@ namespace CrewChief.Events
             }
         }
 
+        // get the closing speed (> 0 if we're getting closer, < 0 if we're getting further away)
         private float getClosingSpeed(Shared lastState, Shared currentState, Boolean front)
         {
-            float averageSpeed = (currentState.CarSpeed + lastState.CarSpeed) / 2;
+            // note that we always use current speed here. This is because the data are noisy and the
+            // gap and speed data occasionally contain incorrect small values. If this happens to the 
+            // currentSpeed, we'll already have discarded the data in this iteration (currentSpeed < minSpotterSpeed).
+            // If the either of the timeDeltas are very small we'll either interpret this as a very high closing speed 
+            // or a negative closing speed, neither of which should trigger a 'hold your line' message.
+
+            // We really should be using the speed from the lastState when calculating the gap at the
+            // lastState, but the speed should (if the data are correct) be fairly similar
             float timeElapsed = (float)currentState.Player.GameSimulationTime - (float)lastState.Player.GameSimulationTime;
             if (front)
             {
-                return ((Math.Abs(lastState.TimeDeltaFront) / averageSpeed) - 
-                    (Math.Abs(currentState.TimeDeltaFront) / averageSpeed)) / timeElapsed;
+                return ((Math.Abs(lastState.TimeDeltaFront) * currentState.CarSpeed) - 
+                    (Math.Abs(currentState.TimeDeltaFront) * currentState.CarSpeed)) / timeElapsed;
             } else
             {
-                return ((Math.Abs(lastState.TimeDeltaBehind) / averageSpeed) -
-                    (Math.Abs(currentState.TimeDeltaBehind) / averageSpeed)) / timeElapsed;
+                return ((Math.Abs(lastState.TimeDeltaBehind) * currentState.CarSpeed) -
+                    (Math.Abs(currentState.TimeDeltaBehind) * currentState.CarSpeed)) / timeElapsed;
             }
         }
     }
