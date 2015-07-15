@@ -91,6 +91,8 @@ namespace CrewChief.Events
 
                 Boolean carAlongSideInFront = carLengthToUse / currentSpeed > deltaFront;
                 Boolean carAlongSideBehind = carLengthToUse / currentSpeed > deltaBehind;
+                Boolean carAlongSideInFrontPrevious = false;
+                Boolean carAlongSideBehindPrevious = false;
 
                 // only say a car is overlapping if it's been overlapping for 2 game state updates
                 // and the closing speed isn't too high
@@ -98,15 +100,13 @@ namespace CrewChief.Events
                 {
                     // check the closing speed before warning
                     closingSpeedInFront = getClosingSpeed(lastState, currentState, true);
-                    carAlongSideInFront = carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaFront) &&
-                        Math.Abs(closingSpeedInFront) < maxClosingSpeed;
+                    carAlongSideInFrontPrevious = carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaFront);
                 }
                 if (carAlongSideBehind)
                 {
                     // check the closing speed before warning
                     closingSpeedBehind = getClosingSpeed(lastState, currentState, false);
-                    carAlongSideBehind =  carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaBehind) &&
-                        Math.Abs(closingSpeedBehind) < maxClosingSpeed;
+                    carAlongSideBehindPrevious = carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaBehind);
                 }
 
                 DateTime now = DateTime.Now;
@@ -129,7 +129,8 @@ namespace CrewChief.Events
                         timeWhenWeThinkWeAreClear = now;
                     }
                 }
-                else if (carAlongSideInFront || carAlongSideBehind)
+                else if ((carAlongSideInFront && carAlongSideInFrontPrevious && Math.Abs(closingSpeedInFront) < maxClosingSpeed) ||
+                    (carAlongSideBehindPrevious && carAlongSideBehind && Math.Abs(closingSpeedBehind) < maxClosingSpeed))
                 {                    
                     Boolean frontOverlapIsReducing = carAlongSideInFront && closingSpeedInFront > 0;
                     Boolean rearOverlapIsReducing =  carAlongSideBehind && closingSpeedBehind > 0;
