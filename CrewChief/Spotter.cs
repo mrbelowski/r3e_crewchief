@@ -42,8 +42,8 @@ namespace CrewChief.Events
         private String folderHoldYourLine = "spotter/hold_your_line";
         private String folderStillThere = "spotter/still_there";
 
-        // don't play 'clear' messages unless we've actually been clear for 0.5 seconds
-        private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(500);
+        // don't play 'clear' messages unless we've actually been clear for 0.6 seconds
+        private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(600);
 
         private DateTime timeOfLastHoldMessage;
 
@@ -75,12 +75,6 @@ namespace CrewChief.Events
             if (isRaceStarted && currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate && 
                 currentState.ControlType == (int)Constant.Control.Player && speed > minSpeedForSpotterToOperate)
             {
-                if (deltaFront < 0 && deltaBehind < 0)
-                {
-                    Console.WriteLine("Both deltas are < 0, " + deltaFront + ", " + deltaBehind);
-                    return;
-                }
-
                 // if we think there's already a car along side, add a little to the car length so we're
                 // sure it's gone before calling clear
                 float carLengthToUse = carLength;
@@ -101,13 +95,13 @@ namespace CrewChief.Events
                 {
                     // check the closing speed before warning
                     closingSpeedInFront = getClosingSpeed(lastState, currentState, true);
-                    carAlongSideInFront = carAlongSideInFront && Math.Abs(closingSpeedInFront) < maxClosingSpeed;
+                    carAlongSideInFront = Math.Abs(closingSpeedInFront) < maxClosingSpeed;
                 }
                 if (carAlongSideBehind)
                 {
                     // check the closing speed before warning
                     closingSpeedBehind = getClosingSpeed(lastState, currentState, false);
-                    carAlongSideBehind = carAlongSideBehind && Math.Abs(closingSpeedBehind) < maxClosingSpeed;
+                    carAlongSideBehind = Math.Abs(closingSpeedBehind) < maxClosingSpeed;
                 }
 
                 DateTime now = DateTime.Now;
@@ -134,14 +128,30 @@ namespace CrewChief.Events
                 {                    
                     Boolean frontOverlapIsReducing = carAlongSideInFront && closingSpeedInFront > 0;
                     Boolean rearOverlapIsReducing =  carAlongSideBehind && closingSpeedBehind > 0;
-
-                    if (!channelOpen && (rearOverlapIsReducing || (frontOverlapIsReducing && !spotterOnlyWhenBeingPassed)))
+                    if (channelOpen && now > timeOfLastHoldMessage.Add(repeatHoldFrequency))
                     {
-                        Console.WriteLine("new overlap, deltaFront = " + deltaFront + " time gap = " +
-                            carLengthToUse / speed + " closing speed = " + closingSpeedInFront);
-                        Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " +
-                            carLengthToUse / speed + " closing speed = " + closingSpeedBehind);
+                        // channel's already open, still there
+                        Console.WriteLine("Still there...");
+                        timeOfLastHoldMessage = now;
+                        audioPlayer.removeImmediateClip(folderHoldYourLine);
+                        audioPlayer.removeImmediateClip(folderClear);
+                        QueuedMessage stillThereMessage = new QueuedMessage(0, this);
+                        stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
+                    }
+                    else if (!channelOpen && (rearOverlapIsReducing || (frontOverlapIsReducing && !spotterOnlyWhenBeingPassed)))
+                    {
                         Console.WriteLine("race time = " + currentState.Player.GameSimulationTime);
+                        if (carAlongSideInFront)
+                        {
+                            Console.WriteLine("new overlap in front, deltaFront = " + deltaFront + " time gap = " +
+                            carLengthToUse / speed + " closing speed = " + closingSpeedInFront);
+                        }
+                        if (carAlongSideBehind)
+                        {
+                            Console.WriteLine("new overlap behind, deltaBehind = " + deltaBehind + " time gap = " +
+                            carLengthToUse / speed + " closing speed = " + closingSpeedBehind);
+                        }
                         timeOfLastHoldMessage = now;
                         channelOpen = true;
                         audioPlayer.removeImmediateClip(folderClear);
@@ -150,17 +160,7 @@ namespace CrewChief.Events
                         QueuedMessage holdMessage = new QueuedMessage(0, this);
                         holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
                         audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
-                    }
-                    else if (now > timeOfLastHoldMessage.Add(repeatHoldFrequency))
-                    {
-                        Console.WriteLine("Still there...");
-                        timeOfLastHoldMessage = now;
-                        audioPlayer.removeImmediateClip(folderHoldYourLine);
-                        audioPlayer.removeImmediateClip(folderClear);
-                        QueuedMessage stillThereMessage = new QueuedMessage(0, this);
-                        stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                        audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
-                    }                    
+                    }              
                 }
             }
             else if (channelOpen)

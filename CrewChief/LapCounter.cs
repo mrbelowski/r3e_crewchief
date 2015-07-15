@@ -65,7 +65,10 @@ namespace CrewChief.Events
                 currentState.SessionTimeRemaining < lastState.SessionTimeRemaining)
             {
                 // the session has started
-                raceSessionLength = lastState.SessionTimeRemaining;
+                // round to the nearest minute
+                TimeSpan sessionTimespan = TimeSpan.FromSeconds(lastState.SessionTimeRemaining);
+                raceSessionLength = sessionTimespan.Minutes * 60;
+                Console.WriteLine("setting race session length to " + (raceSessionLength / 60));
                 sessionLengthSet = true;
             }
             if (!playedGetReady && 
