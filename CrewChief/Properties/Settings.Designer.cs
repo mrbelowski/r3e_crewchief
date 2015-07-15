@@ -220,5 +220,14 @@ namespace CrewChief.Properties {
                 return ((bool)(this["spotter_only_when_being_passed"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool disable_immediate_messages {
+            get {
+                return ((bool)(this["disable_immediate_messages"]));
+            }
+        }
     }
 }

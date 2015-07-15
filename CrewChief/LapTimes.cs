@@ -116,11 +116,15 @@ namespace CrewChief.Events
                             }
                             else if (getLapTimeBestForClassLeader(currentState) > 0)
                             {
-                                // delay this a bit...
-                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
-                                        new QueuedMessage(folderGapIntro, folderGapOutroOffPace,
-                                            TimeSpan.FromSeconds(currentState.LapTimeBest - getLapTimeBestForClassLeader(currentState)),
-                                            new Random().Next(0, 20), this));
+                                // don't read this message if the rounded time gap is 0.0 seconds
+                                TimeSpan gap = TimeSpan.FromSeconds(currentState.LapTimeBest - getLapTimeBestForClassLeader(currentState));
+                                if (gap.Seconds > 0 || gap.Milliseconds > 50)
+                                {
+                                    // delay this a bit...
+                                    audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
+                                            new QueuedMessage(folderGapIntro, folderGapOutroOffPace, gap,
+                                                new Random().Next(0, 20), this));
+                                }
                             }
                         } 
                         else if (lastLapRating == LastLapRating.PERSONAL_BEST_STILL_SLOW || lastLapRating == LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER ||

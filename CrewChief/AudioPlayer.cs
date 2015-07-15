@@ -33,6 +33,9 @@ namespace CrewChief
 
         private Boolean sweary = Properties.Settings.Default.use_sweary_messages;
 
+        // if this is true, no 'green green green', 'get ready', or spotter messages are played
+        private Boolean disableImmediateMessages = Properties.Settings.Default.disable_immediate_messages;
+
         private Random random = new Random();
     
         private OrderedDictionary queuedClips = new OrderedDictionary();
@@ -149,7 +152,15 @@ namespace CrewChief
                 }
                 
                 // spawn a Thread to monitor the queue
-                ThreadStart work = monitorQueue;
+                ThreadStart work;
+                if (disableImmediateMessages)
+                {
+                    Console.WriteLine("Interupting and immediate messages are disabled - no spotter or 'green green green'");
+                    work = monitorQueueNoImmediateMessages;
+                } else
+                {
+                    work = monitorQueue;
+                }
                 Thread thread = new Thread(work);
                 thread.Start();
                 new SmokeTest(this).trigger(new Data.Shared(), new Data.Shared());
@@ -165,8 +176,8 @@ namespace CrewChief
             loadNewBackground = true;
         }
 
-        private void monitorQueue() {
-            Console.WriteLine("Monitor starting");
+        private void initialiseBackgroundPlayer()
+        {
             if (backgroundVolume > 0)
             {
                 backgroundPlayer = new MediaPlayer();
@@ -178,6 +189,10 @@ namespace CrewChief
                 backgroundPlayer.Volume = backgroundVolume;
                 setBackgroundSound(dtmPitWindowClosedBackground);
             }
+        }
+        private void monitorQueue() {
+            Console.WriteLine("Monitor starting");
+            initialiseBackgroundPlayer();
             var timeLast = DateTime.UtcNow;
             while (true)
             {
@@ -223,6 +238,19 @@ namespace CrewChief
             }
         }
 
+        private void monitorQueueNoImmediateMessages() {
+            initialiseBackgroundPlayer();
+            while (true)
+            {
+                Thread.Sleep(queueMonitorInterval);
+                if (!holdChannelOpen && channelOpen)
+                {
+                    Console.WriteLine("Closing open channel");
+                    closeRadioInternalChannel();
+                }
+                playQueueContents(queuedClips, false);
+            }
+        }
         private void playQueueContents(OrderedDictionary queueToPlay, Boolean isImmediateMessages)
         {
             long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
@@ -466,6 +494,10 @@ namespace CrewChief
 
         public void playClipImmediately(String eventName, QueuedMessage queuedMessage)
         {
+            if (disableImmediateMessages)
+            {
+                return;
+            }
             lock (immediateClips)
             {
                 if (immediateClips.Contains(eventName))
@@ -527,6 +559,10 @@ namespace CrewChief
 
         public void removeImmediateClip(String eventName)
         {
+            if (disableImmediateMessages)
+            {
+                return;
+            }
             lock (immediateClips)
             {
                 if (immediateClips.Contains(eventName))

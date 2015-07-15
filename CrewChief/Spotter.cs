@@ -68,13 +68,14 @@ namespace CrewChief.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            float speed = currentState.CarSpeed;
-            float deltaFront = Math.Abs(currentState.TimeDeltaFront);          
-            float deltaBehind = Math.Abs(currentState.TimeDeltaBehind);
-            
-            if (isRaceStarted && currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate && 
-                currentState.ControlType == (int)Constant.Control.Player && speed > minSpeedForSpotterToOperate)
+            float currentSpeed = currentState.CarSpeed;
+            float previousSpeed = lastState.CarSpeed;
+            if (isRaceStarted && currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate &&
+                currentState.ControlType == (int)Constant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {
+                float deltaFront = Math.Abs(currentState.TimeDeltaFront);
+                float deltaBehind = Math.Abs(currentState.TimeDeltaBehind);
+                
                 // if we think there's already a car along side, add a little to the car length so we're
                 // sure it's gone before calling clear
                 float carLengthToUse = carLength;
@@ -88,28 +89,32 @@ namespace CrewChief.Events
                 float closingSpeedInFront = 9999;
                 float closingSpeedBehind = 9999;
 
-                Boolean carAlongSideInFront = carLengthToUse / speed > deltaFront;
-                Boolean carAlongSideBehind = carLengthToUse / speed > deltaBehind;
-                
+                Boolean carAlongSideInFront = carLengthToUse / currentSpeed > deltaFront;
+                Boolean carAlongSideBehind = carLengthToUse / currentSpeed > deltaBehind;
+
+                // only say a car is overlapping if it's been overlapping for 2 game state updates
+                // and the closing speed isn't too high
                 if (carAlongSideInFront)
                 {
                     // check the closing speed before warning
                     closingSpeedInFront = getClosingSpeed(lastState, currentState, true);
-                    carAlongSideInFront = Math.Abs(closingSpeedInFront) < maxClosingSpeed;
+                    carAlongSideInFront = carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaFront) &&
+                        Math.Abs(closingSpeedInFront) < maxClosingSpeed;
                 }
                 if (carAlongSideBehind)
                 {
                     // check the closing speed before warning
                     closingSpeedBehind = getClosingSpeed(lastState, currentState, false);
-                    carAlongSideBehind = Math.Abs(closingSpeedBehind) < maxClosingSpeed;
+                    carAlongSideBehind =  carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaBehind) &&
+                        Math.Abs(closingSpeedBehind) < maxClosingSpeed;
                 }
 
                 DateTime now = DateTime.Now;
 
                 if (channelOpen && !carAlongSideInFront && !carAlongSideBehind) 
                 {
-                    Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / speed);
-                    Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " + carLengthToUse / speed);
+                    Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / currentSpeed);
+                    Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " + carLengthToUse / currentSpeed);
                     Console.WriteLine("race time = " + currentState.Player.GameSimulationTime);
 
                     if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay)) {
@@ -145,12 +150,12 @@ namespace CrewChief.Events
                         if (carAlongSideInFront)
                         {
                             Console.WriteLine("new overlap in front, deltaFront = " + deltaFront + " time gap = " +
-                            carLengthToUse / speed + " closing speed = " + closingSpeedInFront);
+                            carLengthToUse / currentSpeed + " closing speed = " + closingSpeedInFront);
                         }
                         if (carAlongSideBehind)
                         {
                             Console.WriteLine("new overlap behind, deltaBehind = " + deltaBehind + " time gap = " +
-                            carLengthToUse / speed + " closing speed = " + closingSpeedBehind);
+                            carLengthToUse / currentSpeed + " closing speed = " + closingSpeedBehind);
                         }
                         timeOfLastHoldMessage = now;
                         channelOpen = true;
