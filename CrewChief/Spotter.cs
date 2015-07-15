@@ -125,9 +125,8 @@ namespace CrewChief.Events
                         clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
                         audioPlayer.playClipImmediately(folderClear, clearMessage);
                         audioPlayer.closeChannel();
-                    } else {
-                        timeWhenWeThinkWeAreClear = now;
                     }
+                    timeWhenWeThinkWeAreClear = now;
                 }
                 else if ((carAlongSideInFront && carAlongSideInFrontPrevious && Math.Abs(closingSpeedInFront) < maxClosingSpeed) ||
                     (carAlongSideBehindPrevious && carAlongSideBehind && Math.Abs(closingSpeedBehind) < maxClosingSpeed))

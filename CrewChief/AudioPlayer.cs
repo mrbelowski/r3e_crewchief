@@ -242,13 +242,13 @@ namespace CrewChief
             initialiseBackgroundPlayer();
             while (true)
             {
-                Thread.Sleep(queueMonitorInterval);
+                Thread.Sleep(queueMonitorInterval);                
+                playQueueContents(queuedClips, false);
                 if (!holdChannelOpen && channelOpen)
                 {
                     Console.WriteLine("Closing open channel");
                     closeRadioInternalChannel();
                 }
-                playQueueContents(queuedClips, false);
             }
         }
         private void playQueueContents(OrderedDictionary queueToPlay, Boolean isImmediateMessages)
