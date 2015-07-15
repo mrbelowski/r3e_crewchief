@@ -169,7 +169,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0.9")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.1")]
         public float spotter_gap_for_clear {
             get {
                 return ((float)(this["spotter_gap_for_clear"]));
