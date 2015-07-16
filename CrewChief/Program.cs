@@ -60,6 +60,7 @@ namespace CrewChief
             eventsList.Add(new EngineMonitor(audioPlayer));
             eventsList.Add(new Timings(audioPlayer));
             eventsList.Add(new DamageReporting(audioPlayer));
+            eventsList.Add(new PushNow(audioPlayer));
             if (enableSpotter)
             {
                 Console.WriteLine("Enabling spotter");

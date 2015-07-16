@@ -75,7 +75,7 @@ namespace CrewChief.Events
             {
                 lapIsValid = false;
             }
-            if (isSessionRunning && isNewLap && currentState.CompletedLaps > 0 && currentState.LapTimePrevious > 0)
+            if (isSessionRunning && isNewLap && currentState.CompletedLaps > 1 && currentState.LapTimePrevious > 0)
             {
                 if (lapTimesWindow == null)
                 {
