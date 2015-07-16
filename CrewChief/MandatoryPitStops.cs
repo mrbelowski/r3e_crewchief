@@ -141,14 +141,18 @@ namespace CrewChief.Events
                     }
                     pitDataInitialised = true;
                 }
+                else if (isMakingMandatoryStop(lastState, currentState))
+                {
+                    playPitThisLap = false;
+                    playBoxNowMessage = false;
+                }
                 else
                 {
                     if (isNewLap && currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
                     {
                         if (currentState.PitWindowStatus != (int)Constant.PitWindow.StopInProgress &&
                             currentState.PitWindowStatus != (int)Constant.PitWindow.Completed && 
-                            currentState.CompletedLaps == tyreChangeLap &&
-                            playPitThisLap)
+                            currentState.CompletedLaps == tyreChangeLap && playPitThisLap)
                         {
                             playBoxNowMessage = true;
                             playPitThisLap = false;
@@ -206,7 +210,8 @@ namespace CrewChief.Events
                                 playBoxNowMessage = true;
                                 playPitThisLap = false;
                             }
-                            else if (currentState.LapTimeBest + 10 < timeLeftToPit && (currentState.LapTimeBest * 2) + 10 > timeLeftToPit)
+                            else if (playPitThisLap && currentState.LapTimeBest + 10 < timeLeftToPit && 
+                                (currentState.LapTimeBest * 2) + 10 > timeLeftToPit)
                             {
                                 // we probably won't make it round twice - pit at the end of this lap
                                 audioPlayer.queueClip(folderMandatoryPitStopsPitThisLap, 0, this);
@@ -268,6 +273,14 @@ namespace CrewChief.Events
                     }
                 }
             }
+        }
+        private Boolean isMakingMandatoryStop(Shared lastState, Shared currentState)
+        {
+            return (lastState.PitWindowStatus == (int)Constant.PitWindow.Open &&
+                currentState.PitWindowStatus == (int)Constant.PitWindow.Completed) ||
+                (currentState.PitWindowStatus == (int)Constant.PitWindow.Open &&
+                lastState.ControlType == (int)Constant.Control.Player &&
+                currentState.ControlType == (int)Constant.Control.AI);
         }
     }
 }

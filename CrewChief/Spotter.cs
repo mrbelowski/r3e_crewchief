@@ -46,10 +46,12 @@ namespace CrewChief.Events
 
         // don't play 'clear' messages unless we've actually been clear for 0.5 seconds
         private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(500);
+        private TimeSpan overlapMessageDelay = TimeSpan.FromMilliseconds(100);
 
         private DateTime timeOfLastHoldMessage;
 
         private DateTime timeWhenWeThinkWeAreClear;
+        private DateTime timeWhenWeThinkWeAreOverlapping;
 
         public Spotter(AudioPlayer audioPlayer)
         {
@@ -61,6 +63,7 @@ namespace CrewChief.Events
             channelOpen = false;
             timeOfLastHoldMessage = DateTime.Now;
             timeWhenWeThinkWeAreClear = DateTime.Now;
+            timeWhenWeThinkWeAreOverlapping = DateTime.Now;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -146,27 +149,32 @@ namespace CrewChief.Events
                         stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
                         audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
                     }
-                    else if (!channelOpen && (rearOverlapIsReducing || (frontOverlapIsReducing && !spotterOnlyWhenBeingPassed)))
+                    else if (!channelOpen &&
+                        (rearOverlapIsReducing || (frontOverlapIsReducing && !spotterOnlyWhenBeingPassed)))
                     {
-                        Console.WriteLine("race time = " + currentState.Player.GameSimulationTime);
-                        if (carAlongSideInFront)
+                        if (now > timeWhenWeThinkWeAreOverlapping.Add(overlapMessageDelay))
                         {
-                            Console.WriteLine("new overlap in front, deltaFront = " + deltaFront + " time gap = " +
-                            carLengthToUse / currentSpeed + " closing speed = " + closingSpeedInFront);
+                            Console.WriteLine("race time = " + currentState.Player.GameSimulationTime);
+                            if (carAlongSideInFront)
+                            {
+                                Console.WriteLine("new overlap in front, deltaFront = " + deltaFront + " time gap = " +
+                                carLengthToUse / currentSpeed + " closing speed = " + closingSpeedInFront);
+                            }
+                            if (carAlongSideBehind)
+                            {
+                                Console.WriteLine("new overlap behind, deltaBehind = " + deltaBehind + " time gap = " +
+                                carLengthToUse / currentSpeed + " closing speed = " + closingSpeedBehind);
+                            }
+                            timeOfLastHoldMessage = now;
+                            channelOpen = true;
+                            audioPlayer.removeImmediateClip(folderClear);
+                            audioPlayer.removeImmediateClip(folderStillThere);
+                            audioPlayer.openChannel();
+                            QueuedMessage holdMessage = new QueuedMessage(0, this);
+                            holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                            audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
                         }
-                        if (carAlongSideBehind)
-                        {
-                            Console.WriteLine("new overlap behind, deltaBehind = " + deltaBehind + " time gap = " +
-                            carLengthToUse / currentSpeed + " closing speed = " + closingSpeedBehind);
-                        }
-                        timeOfLastHoldMessage = now;
-                        channelOpen = true;
-                        audioPlayer.removeImmediateClip(folderClear);
-                        audioPlayer.removeImmediateClip(folderStillThere);
-                        audioPlayer.openChannel();
-                        QueuedMessage holdMessage = new QueuedMessage(0, this);
-                        holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                        audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
+                        timeWhenWeThinkWeAreOverlapping = now;
                     }              
                 }
             }

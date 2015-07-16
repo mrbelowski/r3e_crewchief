@@ -38,8 +38,6 @@ namespace CrewChief.Events
         Boolean playedGetReady;
 
         Boolean playedFinished;
-
-        Boolean sessionLengthSet;
     
         public LapCounter(AudioPlayer audioPlayer) {
             this.audioPlayer = audioPlayer;
@@ -50,7 +48,6 @@ namespace CrewChief.Events
             playedGreenGreenGreen = false;
             playedGetReady = false;
             playedFinished = false;
-            sessionLengthSet = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -59,18 +56,7 @@ namespace CrewChief.Events
         }
         
         override protected void triggerInternal(Shared lastState, Shared currentState)
-        {
-            if (currentState.SessionType == (int) Constant.Session.Race && 
-                !sessionLengthSet && currentState.SessionTimeRemaining > 0 && lastState.SessionTimeRemaining > 0 && 
-                currentState.SessionTimeRemaining < lastState.SessionTimeRemaining)
-            {
-                // the session has started
-                // round to the nearest minute
-                TimeSpan sessionTimespan = TimeSpan.FromSeconds(lastState.SessionTimeRemaining);
-                raceSessionLength = sessionTimespan.Minutes * 60;
-                Console.WriteLine("setting race session length to " + (raceSessionLength / 60));
-                sessionLengthSet = true;
-            }
+        {            
             if (!playedGetReady && 
                 (currentState.SessionPhase == (int) Constant.SessionPhase.Countdown))
             {

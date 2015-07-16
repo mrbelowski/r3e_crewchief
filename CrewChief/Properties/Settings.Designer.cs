@@ -169,7 +169,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.2")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.1")]
         public float spotter_gap_for_clear {
             get {
                 return ((float)(this["spotter_gap_for_clear"]));
@@ -178,7 +178,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("30")]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
         public int time_after_race_start_for_spotter {
             get {
                 return ((int)(this["time_after_race_start_for_spotter"]));
@@ -205,7 +205,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        [global::System.Configuration.DefaultSettingValueAttribute("7")]
         public int max_closing_speed_for_spotter {
             get {
                 return ((int)(this["max_closing_speed_for_spotter"]));
@@ -232,7 +232,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool spotter_in_qual_and_practice {
             get {
                 return ((bool)(this["spotter_in_qual_and_practice"]));

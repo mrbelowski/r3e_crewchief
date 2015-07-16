@@ -41,6 +41,8 @@ namespace CrewChief.Events
         // state
         abstract public Boolean isClipStillValid(String eventSubType);
 
+        Boolean sessionLengthSet;
+
         public void clearState()
         {
             isNew = true;
@@ -48,6 +50,7 @@ namespace CrewChief.Events
             currentLapSector = -1;
             raceSessionLength = -1;
             isLast = false;
+            sessionLengthSet = false;
         }
 
         public void setPearlsOfWisdom(PearlsOfWisdom pearlsOfWisdom)
@@ -91,6 +94,18 @@ namespace CrewChief.Events
             isNewSector = currentLapSector != lastSector;
 
             isLast = currentState.Position == currentState.NumCars;
+
+            if (!sessionLengthSet && currentState.SessionType == (int)Constant.Session.Race &&
+                currentState.SessionTimeRemaining > 0 && lastState.SessionTimeRemaining > 0 &&
+                currentState.SessionTimeRemaining < lastState.SessionTimeRemaining)
+            {
+                // the session has started
+                // round to the nearest minute
+                TimeSpan sessionTimespan = TimeSpan.FromSeconds(currentState.SessionTimeRemaining + 10);
+                raceSessionLength = sessionTimespan.Minutes * 60;
+                Console.WriteLine("setting race session length to " + (raceSessionLength / 60));
+                sessionLengthSet = true;
+            }
         }
     }
 }
