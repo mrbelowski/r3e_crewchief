@@ -31,6 +31,8 @@ For version 1.9 there's a crude spotter (it doesn't now which side the overlappi
 
 Changes
 -------
+Version 1.9.3: don't all the spotter to call 'clear' unless there have been 2 consecutive game updates with no car along side; allow the spotter to be used for qual and practice (set spotter_in_qual_and_practice to false if you only want it in race sessions); added a new event for 'push now' messages - should trigger near the end of the race if there's a chance of improving your position or being overtaken (but only if the number of cars in the race and your position are unchanged). Also adds a warning for exiting the pits into traffic
+
 Version 1.9.2: fixed some spotter 'bounce' issues; added an option to disable all interrupting messages (including spotter and "green green green") for systems having performance issues; check a gap is > 0.05 before reading it out it in qualifying
 
 Version 1.9.1: Added crude spotter and reworked queuing, interrupting, and 'immediate play' code to support this; added some more fuel half distance checks and race start time checks, added messages for p11 - p24 and messages for last and consistently last; reworked gap / laptime reporting and made the number reading a bit less robotic; some other minor fixes and tweaks.
