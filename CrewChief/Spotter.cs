@@ -44,8 +44,8 @@ namespace CrewChief.Events
         private String folderHoldYourLine = "spotter/hold_your_line";
         private String folderStillThere = "spotter/still_there";
 
-        // don't play 'clear' messages unless we've actually been clear for 0.6 seconds
-        private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(600);
+        // don't play 'clear' messages unless we've actually been clear for 0.5 seconds
+        private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(500);
 
         private DateTime timeOfLastHoldMessage;
 
@@ -93,9 +93,9 @@ namespace CrewChief.Events
                 float closingSpeedBehind = 9999;
 
                 Boolean carAlongSideInFront = carLengthToUse / currentSpeed > deltaFront;
+                Boolean carAlongSideInFrontPrevious = carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaFront);
                 Boolean carAlongSideBehind = carLengthToUse / currentSpeed > deltaBehind;
-                Boolean carAlongSideInFrontPrevious = false;
-                Boolean carAlongSideBehindPrevious = false;
+                Boolean carAlongSideBehindPrevious = carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaBehind);
 
                 // only say a car is overlapping if it's been overlapping for 2 game state updates
                 // and the closing speed isn't too high
@@ -103,18 +103,17 @@ namespace CrewChief.Events
                 {
                     // check the closing speed before warning
                     closingSpeedInFront = getClosingSpeed(lastState, currentState, true);
-                    carAlongSideInFrontPrevious = carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaFront);
                 }
                 if (carAlongSideBehind)
                 {
                     // check the closing speed before warning
                     closingSpeedBehind = getClosingSpeed(lastState, currentState, false);
-                    carAlongSideBehindPrevious = carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaBehind);
                 }
 
                 DateTime now = DateTime.Now;
 
-                if (channelOpen && !carAlongSideInFront && !carAlongSideBehind) 
+                if (channelOpen && !carAlongSideInFront && !carAlongSideInFrontPrevious && 
+                    !carAlongSideBehindPrevious && !carAlongSideBehind) 
                 {
                     Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / currentSpeed);
                     Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " + carLengthToUse / currentSpeed);
