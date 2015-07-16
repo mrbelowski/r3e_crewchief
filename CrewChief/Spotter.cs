@@ -36,6 +36,8 @@ namespace CrewChief.Events
 
         private Boolean spotterOnlyWhenBeingPassed = Properties.Settings.Default.spotter_only_when_being_passed;
 
+        private Boolean enableInQualAndPractice = Properties.Settings.Default.spotter_in_qual_and_practice;
+
         private Boolean channelOpen;
 
         private String folderClear = "spotter/clear";
@@ -70,7 +72,8 @@ namespace CrewChief.Events
         {
             float currentSpeed = currentState.CarSpeed;
             float previousSpeed = lastState.CarSpeed;
-            if (isRaceStarted && currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate &&
+            if ((isRaceStarted || (enableInQualAndPractice && isSessionRunning)) && 
+                currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate &&
                 currentState.ControlType == (int)Constant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {
                 float deltaFront = Math.Abs(currentState.TimeDeltaFront);
