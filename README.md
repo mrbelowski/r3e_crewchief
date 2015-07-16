@@ -1,6 +1,6 @@
 # r3e_crewchief
 
-Version 1.1
+Version 1.9.3
 
 
 
@@ -31,7 +31,7 @@ For version 1.9 there's a crude spotter (it doesn't now which side the overlappi
 
 Changes
 -------
-Version 1.9.3: don't all the spotter to call 'clear' unless there have been 2 consecutive game updates with no car along side; allow the spotter to be used for qual and practice (set spotter_in_qual_and_practice to false if you only want it in race sessions); added a new event for 'push now' messages - should trigger near the end of the race if there's a chance of improving your position or being overtaken (but only if the number of cars in the race and your position are unchanged). Also adds a warning for exiting the pits into traffic
+Version 1.9.3: fixed completely broken pit window stuff for timed races; don't allow the spotter to call 'clear' unless there have been 2 consecutive game updates with no car along side; added a new event for 'push now' messages - should trigger near the end of the race if there's a chance of improving your position or being overtaken (but only if the number of cars in the race and your position are unchanged). Also adds a warning for exiting the pits into traffic
 
 Version 1.9.2: fixed some spotter 'bounce' issues; added an option to disable all interrupting messages (including spotter and "green green green") for systems having performance issues; check a gap is > 0.05 before reading it out it in qualifying
 

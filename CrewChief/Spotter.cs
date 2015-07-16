@@ -14,6 +14,10 @@ namespace CrewChief.Events
         private int clearMessageExpiresAfter = 2000;               
         private int holdMessageExpiresAfter = 1000;
 
+        private Boolean require2OverlapsForHold = Properties.Settings.Default.require_2_overlaps_for_hold_message;
+
+        private Boolean require2ClearsForClear = Properties.Settings.Default.require_2_clears_for_clear_message;
+
         // how long is a car? we use 3.5 meters by default here. Too long and we'll get 'hold your line' messages
         // when we're clearly directly behind the car
         private float carLength = Properties.Settings.Default.spotter_car_length;
@@ -45,8 +49,8 @@ namespace CrewChief.Events
         private String folderStillThere = "spotter/still_there";
 
         // don't play 'clear' messages unless we've actually been clear for 0.5 seconds
-        private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(500);
-        private TimeSpan overlapMessageDelay = TimeSpan.FromMilliseconds(100);
+        private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(Properties.Settings.Default.spotter_clear_delay);
+        private TimeSpan overlapMessageDelay = TimeSpan.FromMilliseconds(Properties.Settings.Default.spotter_overlap_delay);
 
         private DateTime timeOfLastHoldMessage;
 
@@ -62,8 +66,8 @@ namespace CrewChief.Events
         {
             channelOpen = false;
             timeOfLastHoldMessage = DateTime.Now;
-            timeWhenWeThinkWeAreClear = DateTime.Now;
-            timeWhenWeThinkWeAreOverlapping = DateTime.Now;
+            timeWhenWeThinkWeAreClear = DateTime.Now.Add(TimeSpan.FromDays(1));
+            timeWhenWeThinkWeAreOverlapping = DateTime.Now.Add(TimeSpan.FromDays(1));
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -115,9 +119,11 @@ namespace CrewChief.Events
 
                 DateTime now = DateTime.Now;
 
-                if (channelOpen && !carAlongSideInFront && !carAlongSideInFrontPrevious && 
-                    !carAlongSideBehindPrevious && !carAlongSideBehind) 
+                if (channelOpen && !carAlongSideInFront && (!require2ClearsForClear || !carAlongSideInFrontPrevious) &&
+                    !carAlongSideBehind && (!require2ClearsForClear || !carAlongSideBehindPrevious))
                 {
+                    // add some large amount from the time we think we're overlapping, to reset it
+                    timeWhenWeThinkWeAreOverlapping.Add(TimeSpan.FromDays(1));
                     Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / currentSpeed);
                     Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " + carLengthToUse / currentSpeed);
                     Console.WriteLine("race time = " + currentState.Player.GameSimulationTime);
@@ -133,9 +139,11 @@ namespace CrewChief.Events
                     }
                     timeWhenWeThinkWeAreClear = now;
                 }
-                else if ((carAlongSideInFront && carAlongSideInFrontPrevious && Math.Abs(closingSpeedInFront) < maxClosingSpeed) ||
-                    (carAlongSideBehindPrevious && carAlongSideBehind && Math.Abs(closingSpeedBehind) < maxClosingSpeed))
-                {                    
+                else if ((carAlongSideInFront && (!require2OverlapsForHold || carAlongSideInFrontPrevious) && Math.Abs(closingSpeedInFront) < maxClosingSpeed) ||
+                    (carAlongSideBehind && (!require2OverlapsForHold || carAlongSideBehindPrevious) && Math.Abs(closingSpeedBehind) < maxClosingSpeed))
+                {
+                    // add some large amount from the time we think we're clear, to reset it
+                    timeWhenWeThinkWeAreClear.Add(TimeSpan.FromDays(1));
                     Boolean frontOverlapIsReducing = carAlongSideInFront && closingSpeedInFront > 0;
                     Boolean rearOverlapIsReducing =  carAlongSideBehind && closingSpeedBehind > 0;
                     if (channelOpen && now > timeOfLastHoldMessage.Add(repeatHoldFrequency))

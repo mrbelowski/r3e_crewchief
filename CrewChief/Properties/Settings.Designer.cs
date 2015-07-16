@@ -160,7 +160,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("3.5")]
+        [global::System.Configuration.DefaultSettingValueAttribute("3.6")]
         public float spotter_car_length {
             get {
                 return ((float)(this["spotter_car_length"]));
@@ -169,7 +169,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.8")]
         public float spotter_gap_for_clear {
             get {
                 return ((float)(this["spotter_gap_for_clear"]));
@@ -178,7 +178,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        [global::System.Configuration.DefaultSettingValueAttribute("30")]
         public int time_after_race_start_for_spotter {
             get {
                 return ((int)(this["time_after_race_start_for_spotter"]));
@@ -236,6 +236,42 @@ namespace CrewChief.Properties {
         public bool spotter_in_qual_and_practice {
             get {
                 return ((bool)(this["spotter_in_qual_and_practice"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool require_2_overlaps_for_hold_message {
+            get {
+                return ((bool)(this["require_2_overlaps_for_hold_message"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool require_2_clears_for_clear_message {
+            get {
+                return ((bool)(this["require_2_clears_for_clear_message"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("150")]
+        public int spotter_clear_delay {
+            get {
+                return ((int)(this["spotter_clear_delay"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int spotter_overlap_delay {
+            get {
+                return ((int)(this["spotter_overlap_delay"]));
             }
         }
     }
