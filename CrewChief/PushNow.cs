@@ -33,7 +33,6 @@ namespace CrewChief.Events
             pushData = new List<PushData>();
             playedNearEndTimePush = false;
             playedNearEndLapsPush = false;
-            playedExitPitsPush = false;
             drivingOutOfPits = false;
         }
 
