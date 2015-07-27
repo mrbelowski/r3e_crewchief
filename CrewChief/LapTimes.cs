@@ -145,28 +145,33 @@ namespace CrewChief.Events
                     }
                     else
                     {
+                        float pearlLikelihood = 0f;
+                        if (CommonData.isRaceStarted)
+                        {
+                            pearlLikelihood = 0.8f;
+                        }
                         switch (lastLapRating)
                         {
                             case LastLapRating.BEST_OVERALL:
-                                audioPlayer.queueClip(folderBestLapInRace, 0, this, PearlsOfWisdom.PearlType.GOOD, 0.8);
+                                audioPlayer.queueClip(folderBestLapInRace, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
                                 playedLapMessage = true;
                                 break;
                             case LastLapRating.BEST_IN_CLASS:
-                                audioPlayer.queueClip(folderBestLapInRaceForClass, 0, this, PearlsOfWisdom.PearlType.GOOD, 0.8);
+                                audioPlayer.queueClip(folderBestLapInRaceForClass, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
                                 playedLapMessage = true;
                                 break;
                             case LastLapRating.PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER:
                             case LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER:
-                                audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.GOOD, 0.8);
+                                audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
                                 playedLapMessage = true;
                                 break;
                             case LastLapRating.PERSONAL_BEST_STILL_SLOW:
-                                audioPlayer.queueClip(folderPersonalBest, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, 0.8);
+                                audioPlayer.queueClip(folderPersonalBest, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, pearlLikelihood);
                                 playedLapMessage = true;
                                 break;
                             case LastLapRating.CLOSE_TO_OVERALL_LEADER:
                             case LastLapRating.CLOSE_TO_CLASS_LEADER:
-                                audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, 0.8);
+                                audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, pearlLikelihood);
                                 playedLapMessage = true;
                                 break;
                             default:
