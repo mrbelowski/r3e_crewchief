@@ -53,6 +53,8 @@ namespace CrewChief.Events
 
         private TimeSpan cutTrackWarningFrequency = TimeSpan.FromSeconds(10);
 
+        private Boolean playCutTrackWarnings = Properties.Settings.Default.play_cut_track_warnings;
+
         private DateTime lastCutTrackWarningTime;
 
         public Penalties(AudioPlayer audioPlayer) {
@@ -61,10 +63,15 @@ namespace CrewChief.Events
 
         public override void clearState()
         {
+            clearPenaltyState();
             lastCutTrackWarningTime = DateTime.Now;
+            cutTrackWarningsCount = 0;            
+        }
+
+        public override void clearPenaltyState()
+        {
             penaltyLap = -1;
             lapsCompleted = -1;
-            cutTrackWarningsCount = 0;
             hasOutstandingPenalty = false;
             // edge case here: if a penalty is given and immediately served (slow down penalty), then
             // the player gets another within the next 20 seconds, the 'you have 3 laps to come in to serve'
@@ -184,14 +191,15 @@ namespace CrewChief.Events
                     playedTimePenaltyMessage = true;
                     audioPlayer.queueClip(folderTimePenalty, 0, this);
                 }
-            } else if (currentState.SessionType != (int)Constant.Session.Race && 
+            } else if (playCutTrackWarnings && currentState.SessionType != (int)Constant.Session.Race && 
                 currentState.LapTimeCurrent == -1 && lastState.LapTimeCurrent != -1) 
             {
                 lastCutTrackWarningTime = DateTime.Now;
                 audioPlayer.queueClip(folderLapDeleted, 0, this);
                 cutTrackWarningsCount = currentState.CutTrackWarnings;
+                clearPenaltyState();
             }
-            else if (currentState.CutTrackWarnings > cutTrackWarningsCount) {
+            else if (playCutTrackWarnings && currentState.CutTrackWarnings > cutTrackWarningsCount) {
                 cutTrackWarningsCount = currentState.CutTrackWarnings;
                 DateTime now = DateTime.Now;
                 if (lastCutTrackWarningTime.Add(cutTrackWarningFrequency) > now)
@@ -206,9 +214,11 @@ namespace CrewChief.Events
                         audioPlayer.queueClip(folderCutTrackPracticeOrQual, 0, this);
                     }
                 }
+                clearPenaltyState();
             }
             else {
-                clearState();
+                // TODO: this ain't right...
+                clearPenaltyState();
             } 
         }
     }

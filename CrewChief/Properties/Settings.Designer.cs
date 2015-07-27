@@ -283,5 +283,14 @@ namespace CrewChief.Properties {
                 return ((bool)(this["read_lap_times"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool play_cut_track_warnings {
+            get {
+                return ((bool)(this["play_cut_track_warnings"]));
+            }
+        }
     }
 }
