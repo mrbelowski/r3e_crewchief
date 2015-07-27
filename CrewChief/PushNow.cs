@@ -130,18 +130,7 @@ namespace CrewChief.Events
 
         private Boolean checkGaps(Shared currentState, int numLapsLeft)
         {
-            Boolean playedMessage = false;
-            Console.WriteLine("checking gaps...");
-            if (currentState.Position > 1)
-            {
-                Console.WriteLine("before end, could gain " + ((getOpponentBestLapInWindow(true) - currentState.LapTimeBest) * numLapsLeft) + 
-                    " current delta = " + currentState.TimeDeltaFront);
-            }
-            if (!CommonData.isLast)
-            {
-                Console.WriteLine("before end, could lose " + ((currentState.LapTimeBest - getOpponentBestLapInWindow(false)) * numLapsLeft) +
-                   " current delta = " + currentState.TimeDeltaBehind);
-            }
+            Boolean playedMessage = false;           
             if (currentState.Position > 1 && pushDataInFront.Count >= previousDataWindowSizeToCheck && 
                 (getOpponentBestLapInWindow(true) - currentState.LapTimeBest) * numLapsLeft > currentState.TimeDeltaFront)
             {
