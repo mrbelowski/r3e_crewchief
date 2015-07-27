@@ -73,6 +73,9 @@ namespace CrewChief.Events
             {
                 hasDRS = true;
             }
+            if (gapsInFront == null || gapsBehind == null) {
+                clearState();
+            }
             if (CommonData.isRaceStarted && CommonData.isNewSector)
             {
                 sectorsSinceLastReport++;
@@ -107,7 +110,7 @@ namespace CrewChief.Events
                 {
                     sectorsSinceLastReport = 0;
                     // here we report on gaps semi-randomly, we'll see how this sounds...
-                    sectorsUntilNextReport = rand.Next(2, 6);
+                    sectorsUntilNextReport = rand.Next(3, 5);
                     switch (gapInFrontStatus)
                     {
                         case GapStatus.INCREASING:

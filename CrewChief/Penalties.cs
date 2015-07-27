@@ -68,7 +68,7 @@ namespace CrewChief.Events
             cutTrackWarningsCount = 0;            
         }
 
-        public override void clearPenaltyState()
+        private void clearPenaltyState()
         {
             penaltyLap = -1;
             lapsCompleted = -1;
@@ -90,6 +90,10 @@ namespace CrewChief.Events
             {
                 Console.WriteLine("checking penalty validity, pen lap = " + penaltyLap + ", completed =" + lapsCompleted);
                 return hasOutstandingPenalty && lapsCompleted == penaltyLap && CommonData.isSessionRunning;
+            }
+            else if (eventSubType == folderCutTrackInRace || eventSubType == folderCutTrackPracticeOrQual || eventSubType == folderLapDeleted)
+            {
+                return true;
             }
             else
             {
@@ -202,7 +206,7 @@ namespace CrewChief.Events
             else if (playCutTrackWarnings && currentState.CutTrackWarnings > cutTrackWarningsCount) {
                 cutTrackWarningsCount = currentState.CutTrackWarnings;
                 DateTime now = DateTime.Now;
-                if (lastCutTrackWarningTime.Add(cutTrackWarningFrequency) > now)
+                if (lastCutTrackWarningTime.Add(cutTrackWarningFrequency) < now)
                 {
                     lastCutTrackWarningTime = now;
                     if (currentState.SessionType == (int)Constant.Session.Race)
