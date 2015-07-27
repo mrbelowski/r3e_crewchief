@@ -27,7 +27,7 @@ namespace CrewChief.Events
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             previousPosition = 0;
             lapNumberAtLastMessage = 0;
@@ -36,7 +36,7 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return isSessionRunning;
+            return CommonData.isSessionRunning;
         }
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
@@ -45,8 +45,9 @@ namespace CrewChief.Events
             {
                 previousPosition = currentState.Position;
             }
-            if (isNewLap && isSessionRunning) {
-                if (isLast)
+            if (CommonData.isNewLap && CommonData.isSessionRunning)
+            {
+                if (CommonData.isLast)
                 {
                     numberOfLapsInLastPlace++;
                 }
@@ -61,22 +62,22 @@ namespace CrewChief.Events
                             || previousPosition != currentState.Position) {
                         PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.NONE;
                         float pearlLikelihood = 0.2f;
-                        if (isRaceStarted)
+                        if (CommonData.isRaceStarted)
                         {
-                            if (!isLast && (previousPosition > currentState.Position + 5 || 
+                            if (!CommonData.isLast && (previousPosition > currentState.Position + 5 || 
                                 (previousPosition > currentState.Position && currentState.Position <= 5)))
                             {
                                 pearlType = PearlsOfWisdom.PearlType.GOOD;
                                 pearlLikelihood = 0.8f;
                             }
-                            else if (!isLast && previousPosition < currentState.Position && currentState.Position > 5)
+                            else if (!CommonData.isLast && previousPosition < currentState.Position && currentState.Position > 5)
                             {
                                 // note that we don't play a pearl for being last - there's a special set of 
                                 // insults reserved for this
                                 pearlType = PearlsOfWisdom.PearlType.BAD;
                                 pearlLikelihood = 0.5f;
                             }
-                            else if (!isLast)
+                            else if (!CommonData.isLast)
                             {
                                 pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
                             }
@@ -94,11 +95,11 @@ namespace CrewChief.Events
                             }
                             // no p1 for pole - this is in the laptime tracker (yuk)
                         }
-                        else if (!isLast)
+                        else if (!CommonData.isLast)
                         {
                             audioPlayer.queueClip(folderStub + currentState.Position, 0, this, pearlType, pearlLikelihood);
                         }
-                        else if (isLast)
+                        else if (CommonData.isLast)
                         {
                             if (numberOfLapsInLastPlace > 3)
                             {

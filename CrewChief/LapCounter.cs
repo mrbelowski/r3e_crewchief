@@ -43,7 +43,7 @@ namespace CrewChief.Events
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             playedGreenGreenGreen = false;
             playedGetReady = false;
@@ -75,7 +75,7 @@ namespace CrewChief.Events
                 audioPlayer.closeChannel();
                 playedGreenGreenGreen = true;
             }
-            if (!playedFinished && isNewLap && currentState.Player.GameSimulationTime > 60 && 
+            if (!playedFinished && CommonData.isNewLap && currentState.Player.GameSimulationTime > 60 && 
                 currentState.SessionPhase == (int)Constant.SessionPhase.Checkered) 
             {
                 int position = currentState.Position;
@@ -101,11 +101,11 @@ namespace CrewChief.Events
                 {
                     audioPlayer.queueClip(folderPodiumFinish, 0, this);
                 }
-                else if (position >= 4 && !isLast)
+                else if (position >= 4 && !CommonData.isLast)
                 {
                     audioPlayer.queueClip(folderFinishedRace, 0, this);
                 }
-                else if (isLast)
+                else if (CommonData.isLast)
                 {
                     audioPlayer.queueClip(folderFinishedRaceLast, 0, this);
                 }
@@ -115,7 +115,7 @@ namespace CrewChief.Events
                 }
                 playedFinished = true;
             }
-            if (isRaceStarted && isNewLap && currentState.NumberOfLaps > 0) {
+            if (CommonData.isRaceStarted && CommonData.isNewLap && currentState.NumberOfLaps > 0) {
                 // a new lap has been started in race mode
                 Console.WriteLine("LapCounter event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);
                 int position = currentState.Position;

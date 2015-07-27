@@ -42,7 +42,7 @@
       <Value Profile="(Default)">15</Value>
     </Setting>
     <Setting Name="use_sweary_messages" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="enable_spotter" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">True</Value>
@@ -84,7 +84,10 @@
       <Value Profile="(Default)">150</Value>
     </Setting>
     <Setting Name="spotter_overlap_delay" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">100</Value>
+      <Value Profile="(Default)">50</Value>
+    </Setting>
+    <Setting Name="read_lap_times" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

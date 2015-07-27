@@ -37,7 +37,7 @@ namespace CrewChief.Events
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             lastLapTyreTemps = new TyreTemps();
             thisLapTyreTemps = new TyreTemps();
@@ -47,18 +47,18 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return isSessionRunning;
+            return CommonData.isSessionRunning;
         }
         
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (isNewLap && isSessionRunning)
+            if (CommonData.isNewLap && CommonData.isSessionRunning)
             {                
                 if (currentState.CompletedLaps > 1)
                 {
                     if (lastLapTyreTemps == null)
                     {
-                        clearStateInternal();
+                        clearState();
                         updateTyreTemps(currentState, lastLapTyreTemps);
                     }
                     lastLapTyreTemps.display();
@@ -112,7 +112,7 @@ namespace CrewChief.Events
             if (thisLapTyreTemps == null)
             {
                 Console.WriteLine("resetting tyre temps data");
-                clearStateInternal();
+                clearState();
             }
             updateTyreTemps(currentState, thisLapTyreTemps);
         }

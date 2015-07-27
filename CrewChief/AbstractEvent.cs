@@ -10,47 +10,23 @@ namespace CrewChief.Events
     {
         protected AudioPlayer audioPlayer;
 
-        protected Boolean isNewLap;
-
-        protected Boolean isNewSector;
-            
-        protected Boolean isNew;
-
-        protected Boolean isRaceStarted;
-
-        protected Boolean isSessionRunning;
-
         protected PearlsOfWisdom pearlsOfWisdom;
-
-        protected Boolean isLast;
-
-        protected float raceSessionLength;
-
-        // note this will be -1 if we don't actually know what sector we're in
-        protected int currentLapSector;
 
         // this is called on each 'tick' (currently every 2 seconds) - the event subtype should
         // place its logic in here including calls to audioPlayer.queueClip
         abstract protected void triggerInternal(Shared lastState, Shared currentState);
 
         // reinitialise any state held by the event subtype
-        abstract protected void clearStateInternal();
+        public abstract void clearState();
 
         // generally the event subclass can just return true for this, but when a clip is played with
         // a non-zero delay it may be necessary to re-check that the clip is still valid against the current
         // state
         abstract public Boolean isClipStillValid(String eventSubType);
 
-        Boolean sessionLengthSet;
-
-        public void clearState()
+        public void respond()
         {
-            isNew = true;
-            clearStateInternal();
-            currentLapSector = -1;
-            raceSessionLength = -1;
-            isLast = false;
-            sessionLengthSet = false;
+            // no-op, override in the subclasses
         }
 
         public void setPearlsOfWisdom(PearlsOfWisdom pearlsOfWisdom)
@@ -60,51 +36,12 @@ namespace CrewChief.Events
 
         public void trigger(Shared lastState, Shared currentState) 
         {
-            getCommonStateData(lastState, currentState);
             // don't trigger events if someone else is driving the car (or it's a replay). No way to tell the difference between
             // watching an AI 'live' and the AI being in control of your car for starts / pitstops
-            if (!isNew && currentState.ControlType != (int)Constant.Control.Remote && currentState.ControlType != (int)Constant.Control.Replay)
+            if (!CommonData.isNew && currentState.ControlType != (int)Constant.Control.Remote && 
+                currentState.ControlType != (int)Constant.Control.Replay)
             {
                 triggerInternal(lastState, currentState);
-            }
-            isNew = false;
-        }
-
-        private void getCommonStateData(Shared lastState, Shared currentState)
-        {
-            isNewLap = isNew || (currentState.CompletedLaps > 0 && lastState.CompletedLaps < currentState.CompletedLaps);
-            isRaceStarted = currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int)Constant.Session.Race;
-            isSessionRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green;
-
-            int lastSector = currentLapSector;
-            if (isNewLap)
-            {
-                currentLapSector = 1;
-            }
-            else if (currentLapSector == 1 &&
-                lastState.SectorTimeDeltaSelf.Sector1 != currentState.SectorTimeDeltaSelf.Sector1)
-            {
-                currentLapSector = 2;
-            }
-            else if (currentLapSector == 2 &&
-                lastState.SectorTimeDeltaSelf.Sector2 != currentState.SectorTimeDeltaSelf.Sector2)
-            {
-                currentLapSector = 3;
-            }
-            isNewSector = currentLapSector != lastSector;
-
-            isLast = currentState.Position == currentState.NumCars;
-
-            if (!sessionLengthSet && currentState.SessionType == (int)Constant.Session.Race &&
-                currentState.SessionTimeRemaining > 0 && lastState.SessionTimeRemaining > 0 &&
-                currentState.SessionTimeRemaining < lastState.SessionTimeRemaining)
-            {
-                // the session has started
-                // round to the nearest minute
-                TimeSpan sessionTimespan = TimeSpan.FromSeconds(currentState.SessionTimeRemaining + 10);
-                raceSessionLength = sessionTimespan.Minutes * 60;
-                Console.WriteLine("setting race session length to " + (raceSessionLength / 60));
-                sessionLengthSet = true;
             }
         }
     }

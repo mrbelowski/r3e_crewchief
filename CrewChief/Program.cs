@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 namespace CrewChief
 {
-    class Sample : IDisposable
+    class CrewChief : IDisposable
     {
         private bool Mapped
         {
@@ -26,7 +26,7 @@ namespace CrewChief
 
         private Boolean enableSpotter = Properties.Settings.Default.enable_spotter;
 
-        private List<AbstractEvent> eventsList = new List<AbstractEvent>();
+        private static Dictionary<String, AbstractEvent> eventsList = new Dictionary<String, AbstractEvent>();
 
         Shared lastState;
         Shared currentState;
@@ -41,6 +41,18 @@ namespace CrewChief
             _file.Dispose();
         }
 
+        public static AbstractEvent getEvent(String eventName)
+        {
+            if (eventsList.ContainsKey(eventName))
+            {
+                return eventsList[eventName];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public void Run()
         {
             var timeReset = DateTime.UtcNow;
@@ -49,22 +61,22 @@ namespace CrewChief
             AudioPlayer audioPlayer = new AudioPlayer();
             audioPlayer.initialise();
             
-            eventsList.Add(new LapCounter(audioPlayer));
-            eventsList.Add(new LapTimes(audioPlayer));
-            eventsList.Add(new Penalties(audioPlayer));
-            eventsList.Add(new MandatoryPitStops(audioPlayer));            
-            eventsList.Add(new Fuel(audioPlayer));
-            eventsList.Add(new Position(audioPlayer));
-            eventsList.Add(new RaceTime(audioPlayer));
-            eventsList.Add(new TyreTempMonitor(audioPlayer));
-            eventsList.Add(new EngineMonitor(audioPlayer));
-            eventsList.Add(new Timings(audioPlayer));
-            eventsList.Add(new DamageReporting(audioPlayer));
-            eventsList.Add(new PushNow(audioPlayer));
+            eventsList.Add("LapCounter", new LapCounter(audioPlayer));
+            eventsList.Add("LapTimes", new LapTimes(audioPlayer));
+            eventsList.Add("Penalties", new Penalties(audioPlayer));
+            eventsList.Add("MandatoryPitStops", new MandatoryPitStops(audioPlayer));            
+            eventsList.Add("Fuel", new Fuel(audioPlayer));
+            eventsList.Add("Position", new Position(audioPlayer));
+            eventsList.Add("RaceTime", new RaceTime(audioPlayer));
+            eventsList.Add("TyreTempMonitor", new TyreTempMonitor(audioPlayer));
+            eventsList.Add("EngineMonitor", new EngineMonitor(audioPlayer));
+            eventsList.Add("Timings", new Timings(audioPlayer));
+            eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
+            eventsList.Add("PushNow", new PushNow(audioPlayer));
             if (enableSpotter)
             {
                 Console.WriteLine("Enabling spotter");
-                eventsList.Add(new Spotter(audioPlayer));
+                eventsList.Add("Spotter", new Spotter(audioPlayer));
             }
 
             while (true)
@@ -104,19 +116,22 @@ namespace CrewChief
                         && !stateCleared)
                     {
                         Console.WriteLine("Clearing game state...");
-                        foreach (AbstractEvent abstractEvent in eventsList)
+                        CommonData.clearState();
+                        foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
                         {
-                            abstractEvent.clearState();
+                            entry.Value.clearState();
                         }
                         stateCleared = true;
                     }
                     else if (gameRunningTime > _timeInterval.Seconds) 
                     {
                         stateCleared = false;
-                        foreach (AbstractEvent abstractEvent in eventsList)
+                        CommonData.setCommonStateData(lastState, currentState);
+                        foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
                         {
-                            abstractEvent.trigger(lastState, currentState);
+                            entry.Value.trigger(lastState, currentState);
                         }
+                        CommonData.isNew = false;
                     }
                     lastGameStateTime = currentState.Player.GameSimulationTime;
                 }
@@ -141,7 +156,7 @@ namespace CrewChief
     {
         static void MainSafe(string[] args)
         {
-            using (var sample = new Sample())
+            using (var sample = new CrewChief())
             {
                 sample.Run();
             }

@@ -31,10 +31,6 @@ namespace CrewChief.Events
 
         private GapStatus lastGapBehindReport;
 
-        private int positionAtLastSector;
-
-        private int numCarsAtLastSector;
-
         private float gapBehindAtLastReport;
 
         private float gapInFrontAtLastReport;
@@ -54,12 +50,10 @@ namespace CrewChief.Events
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             gapsInFront = new List<float>();
             gapsBehind = new List<float>();
-            positionAtLastSector = 0;
-            numCarsAtLastSector = 0;
             lastGapBehindReport = GapStatus.NONE;
             lastGapInFrontReport = GapStatus.NONE;
             gapBehindAtLastReport = -1;
@@ -72,7 +66,7 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return isSessionRunning;
+            return CommonData.isSessionRunning;
         }
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
@@ -81,102 +75,98 @@ namespace CrewChief.Events
             {
                 hasDRS = true;
             }
-            if (isRaceStarted && isNewSector)
+            if (CommonData.isRaceStarted && CommonData.isNewSector)
             {
-                sectorsSinceLastReport++;          
-                // only report gaps if the player's position hasn't changed and the number of cars in the race hasn't changed. This is the
-                // only way to be sure that we're reporting gaps to the same opponent car
-                if (currentState.Position == positionAtLastSector && currentState.NumCars == numCarsAtLastSector)
+                sectorsSinceLastReport++;
+                if (!CommonData.racingSameCarInFront)
                 {
-                    GapStatus gapInFrontStatus = GapStatus.NONE;
-                    GapStatus gapBehindStatus = GapStatus.NONE;
-                    if (currentState.Position != 1)
-                    {
-                        gapsInFront.Insert(0, currentState.TimeDeltaFront);
-                        gapInFrontStatus = getGapStatus(gapsInFront, gapInFrontAtLastReport);
-                    }
-
-                    if (!isLast)
-                    {
-                        gapsBehind.Insert(0, currentState.TimeDeltaBehind);
-                        gapBehindStatus = getGapStatus(gapsBehind, gapBehindAtLastReport);
-                    }
-
-                    // Play which ever is the smaller gap, but we're not interested if the gap is < 0.5 or > 20 seconds or hasn't changed:
-                    Boolean playGapInFront = gapInFrontStatus != GapStatus.NONE && gapInFrontStatus != GapStatus.CONSTANT && 
-                        (gapBehindStatus == GapStatus.NONE || gapsInFront[0] < gapsBehind[0]);
-
-                    Boolean playGapBehind = !playGapInFront && gapBehindStatus != GapStatus.NONE && gapBehindStatus != GapStatus.CONSTANT;
-
-                    if (playGapInFront && sectorsSinceLastReport >= sectorsUntilNextReport)
-                    {
-                        sectorsSinceLastReport = 0;
-                        // here we report on gaps semi-randomly, we'll see how this sounds...
-                        sectorsUntilNextReport = rand.Next(2, 6);
-                        switch (gapInFrontStatus)
-                        {
-                            case GapStatus.INCREASING:
-                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontIncreasing, folderSeconds,
-                                    TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
-                                lastGapInFrontReport = GapStatus.INCREASING;
-                                gapInFrontAtLastReport = gapsInFront[0];
-                                break;
-                            case GapStatus.DECREASING:
-                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontDecreasing, folderSeconds,
-                                    TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
-                                lastGapInFrontReport = GapStatus.DECREASING;
-                                gapInFrontAtLastReport = gapsInFront[0];
-                                break;
-                            case GapStatus.CONSTANT:
-                                // do we even want 'constant' reports?
-                                //audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontConstant, folderSeconds,
-                                //    TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
-                                //lastGapInFrontReport = GapStatus.CONSTANT;
-                                break;
-                            case GapStatus.CLOSE:
-                                audioPlayer.queueClip(folderBeingHeldUp, 0, this);
-                                lastGapInFrontReport = GapStatus.CLOSE;
-                                gapInFrontAtLastReport = gapsInFront[0];
-                                break;
-                        }
-                    }
-                    if (playGapBehind && sectorsSinceLastReport > sectorsUntilNextReport)
-                    {
-                        sectorsSinceLastReport = 0;
-                        sectorsUntilNextReport = rand.Next(2, 6);
-                        switch (gapBehindStatus)
-                        {
-                            case GapStatus.INCREASING:
-                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapBehindIncreasing, folderSeconds,
-                                    TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
-                                lastGapBehindReport = GapStatus.INCREASING;
-                                gapBehindAtLastReport = gapsBehind[0];
-                                break;
-                            case GapStatus.DECREASING:
-                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapBehindDecreasing, folderSeconds,
-                                    TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
-                                lastGapBehindReport = GapStatus.DECREASING;
-                                gapBehindAtLastReport = gapsBehind[0];
-                                break;
-                            case GapStatus.CONSTANT:
-                                // do we even want 'constant' reports?
-                                //audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapBehindConstant, folderSeconds,
-                                //    TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
-                                //lastGapBehindReport = GapStatus.CONSTANT;
-                                break;
-                            case GapStatus.CLOSE:
-                                audioPlayer.queueClip(folderBeingPressured, 0, this);
-                                lastGapBehindReport = GapStatus.CLOSE;
-                                gapBehindAtLastReport = gapsBehind[0];
-                                break;
-                        }
-                    }                                    
+                    gapsInFront.Clear();
                 }
-                else
+                if (!CommonData.racingSameCarBehind)
                 {
-                    clearStateInternal();
-                    positionAtLastSector = currentState.Position;
-                    numCarsAtLastSector = currentState.NumCars;
+                    gapsBehind.Clear();
+                }
+                GapStatus gapInFrontStatus = GapStatus.NONE;
+                GapStatus gapBehindStatus = GapStatus.NONE;
+                if (currentState.Position != 1)
+                {
+                    gapsInFront.Insert(0, currentState.TimeDeltaFront);
+                    gapInFrontStatus = getGapStatus(gapsInFront, gapInFrontAtLastReport);
+                }
+                if (!CommonData.isLast)
+                {
+                    gapsBehind.Insert(0, currentState.TimeDeltaBehind);
+                    gapBehindStatus = getGapStatus(gapsBehind, gapBehindAtLastReport);
+                }
+
+                // Play which ever is the smaller gap, but we're not interested if the gap is < 0.5 or > 20 seconds or hasn't changed:
+                Boolean playGapInFront = gapInFrontStatus != GapStatus.NONE && gapInFrontStatus != GapStatus.CONSTANT &&
+                    (gapBehindStatus == GapStatus.NONE || gapsInFront[0] < gapsBehind[0]);
+
+                Boolean playGapBehind = !playGapInFront && gapBehindStatus != GapStatus.NONE && gapBehindStatus != GapStatus.CONSTANT;
+
+                if (playGapInFront && sectorsSinceLastReport >= sectorsUntilNextReport)
+                {
+                    sectorsSinceLastReport = 0;
+                    // here we report on gaps semi-randomly, we'll see how this sounds...
+                    sectorsUntilNextReport = rand.Next(2, 6);
+                    switch (gapInFrontStatus)
+                    {
+                        case GapStatus.INCREASING:
+                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontIncreasing, folderSeconds,
+                                TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
+                            lastGapInFrontReport = GapStatus.INCREASING;
+                            gapInFrontAtLastReport = gapsInFront[0];
+                            break;
+                        case GapStatus.DECREASING:
+                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontDecreasing, folderSeconds,
+                                TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
+                            lastGapInFrontReport = GapStatus.DECREASING;
+                            gapInFrontAtLastReport = gapsInFront[0];
+                            break;
+                        case GapStatus.CONSTANT:
+                            // do we even want 'constant' reports?
+                            //audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontConstant, folderSeconds,
+                            //    TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
+                            //lastGapInFrontReport = GapStatus.CONSTANT;
+                            break;
+                        case GapStatus.CLOSE:
+                            audioPlayer.queueClip(folderBeingHeldUp, 0, this);
+                            lastGapInFrontReport = GapStatus.CLOSE;
+                            gapInFrontAtLastReport = gapsInFront[0];
+                            break;
+                    }
+                }
+                if (playGapBehind && sectorsSinceLastReport > sectorsUntilNextReport)
+                {
+                    sectorsSinceLastReport = 0;
+                    sectorsUntilNextReport = rand.Next(2, 6);
+                    switch (gapBehindStatus)
+                    {
+                        case GapStatus.INCREASING:
+                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapBehindIncreasing, folderSeconds,
+                                TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
+                            lastGapBehindReport = GapStatus.INCREASING;
+                            gapBehindAtLastReport = gapsBehind[0];
+                            break;
+                        case GapStatus.DECREASING:
+                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapBehindDecreasing, folderSeconds,
+                                TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
+                            lastGapBehindReport = GapStatus.DECREASING;
+                            gapBehindAtLastReport = gapsBehind[0];
+                            break;
+                        case GapStatus.CONSTANT:
+                            // do we even want 'constant' reports?
+                            //audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapBehindConstant, folderSeconds,
+                            //    TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
+                            //lastGapBehindReport = GapStatus.CONSTANT;
+                            break;
+                        case GapStatus.CLOSE:
+                            audioPlayer.queueClip(folderBeingPressured, 0, this);
+                            lastGapBehindReport = GapStatus.CLOSE;
+                            gapBehindAtLastReport = gapsBehind[0];
+                            break;
+                    }
                 }
             }
         }
@@ -187,7 +177,7 @@ namespace CrewChief.Events
             // we don't want to report anything
 
             // when comparing gaps round to 1 decimal place
-            if (gaps[0] <= 0 || gaps.Count < 2 || gaps[1] <= 0 || gaps[0] > 20 || Math.Abs(gaps[0] - gaps[1]) > 5)
+            if (gaps.Count < 2 || gaps[0] <= 0 || gaps[1] <= 0 || gaps[0] > 20 || Math.Abs(gaps[0] - gaps[1]) > 5)
             {
                 return GapStatus.NONE;
             }

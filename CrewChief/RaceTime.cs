@@ -37,7 +37,7 @@ namespace CrewChief.Events
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             played2mins = false; played5mins = false; played10mins = false; played15mins = false;
             played20mins = false; playedHalfWayHome = false; playedLastLap = false ;
@@ -47,19 +47,19 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return isSessionRunning;
+            return CommonData.isSessionRunning;
         }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (currentState.SessionTimeRemaining > -1 && isSessionRunning)
+            if (currentState.SessionTimeRemaining > -1 && CommonData.isSessionRunning)
             {
                 if (!gotHalfTime)
                 {
                     Console.WriteLine("Session time remaining = " + currentState.SessionTimeRemaining);
                     halfTime = currentState.SessionTimeRemaining / 2;
                     gotHalfTime = true;
-                    if (isRaceStarted && currentState.FuelUseActive == 1)
+                    if (CommonData.isRaceStarted && currentState.FuelUseActive == 1)
                     {
                         // don't allow the half way message to play if fuel use is active - there's already one in there
                         playedHalfWayHome = true;
@@ -81,7 +81,7 @@ namespace CrewChief.Events
 
                 // this event only works if we're leading because we don't know when the leader 
                 // crosses the line :(
-                if (isRaceStarted && isNewLap && currentState.Player.GameSimulationTime > 60 && !playedLastLap &&
+                if (CommonData.isRaceStarted && CommonData.isNewLap && currentState.Player.GameSimulationTime > 60 && !playedLastLap &&
                     currentState.Position == 1 && currentState.SessionTimeRemaining < currentState.LapTimeBest)
                 {
                     playedLastLap = true;
@@ -124,12 +124,12 @@ namespace CrewChief.Events
                     played15mins = true;
                     played20mins = true;
                     playedHalfWayHome = true;
-                    if (isRaceStarted && currentState.Position == 1)
+                    if (CommonData.isRaceStarted && currentState.Position == 1)
                     {
                         // don't add a pearl here - the audio clip already contains encouragement
                         audioPlayer.queueClip(folder5minsLeading, 0, this, pearlType, 0);
                     }
-                    else if (isRaceStarted && currentState.Position < 4)
+                    else if (CommonData.isRaceStarted && currentState.Position < 4)
                     {
                         // don't add a pearl here - the audio clip already contains encouragement
                         audioPlayer.queueClip(folder5minsPodium, 0, this, pearlType, 0);

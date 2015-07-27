@@ -48,7 +48,7 @@ namespace CrewChief.Events
             damageEnabled = false;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             playedMinorTransmissionDamage = false; playedMinorEngineDamage = false; playedMinorAeroDamage = false; playedSevereAeroDamage = false;
             playedSevereTransmissionDamage = false; playedSevereEngineDamage = false; playedBustedTransmission = false; playedBustedEngine = false;
@@ -75,7 +75,7 @@ namespace CrewChief.Events
                 damageEnabled = false;
                 return;
             }
-            if (isNewLap)
+            if (CommonData.isNewLap)
             {
                 Console.WriteLine("Aero " + currentState.CarDamage.Aerodynamics);
                 Console.WriteLine("Engine " + currentState.CarDamage.Engine);

@@ -65,7 +65,7 @@ namespace CrewChief.Events
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             fuelAfter15Seconds = 0;
             averageUsagePerLap = 0;
@@ -84,12 +84,12 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return isSessionRunning;
+            return CommonData.isSessionRunning;
         }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (isRaceStarted && currentState.FuelUseActive == 1)
+            if (CommonData.isRaceStarted && currentState.FuelUseActive == 1)
             {
                 // To get the initial fuel, wait for 15 seconds
                 if (!initialised && currentState.Player.GameSimulationTime > 15)
@@ -109,7 +109,7 @@ namespace CrewChief.Events
                         halfTime = currentState.SessionTimeRemaining / 2;
                     }
                 }
-                if (isNewLap && initialised && currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
+                if (CommonData.isNewLap && initialised && currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
                 {
                     // completed a lap, so store the fuel left at this point:
                     fuelUseWindow.Insert(0, currentState.FuelLeft);

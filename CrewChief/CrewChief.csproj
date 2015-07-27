@@ -27,6 +27,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <NuGetPackageImportStamp>660a4d2b</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -54,8 +55,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
+    <Reference Include="SharpDX">
+      <HintPath>$(SharpDXPackageBinDir)\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DirectInput">
+      <HintPath>$(SharpDXPackageBinDir)\SharpDX.DirectInput.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -66,6 +74,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractEvent.cs" />
+    <Compile Include="ButtonRequest.cs" />
+    <Compile Include="CommonData.cs" />
+    <Compile Include="Request.cs" />
     <Compile Include="PushNow.cs" />
     <Compile Include="Spotter.cs" />
     <Compile Include="DamageReporting.cs" />
@@ -97,6 +108,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -125,6 +137,13 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\SharpDX.2.6.3\build\SharpDX.targets" Condition="Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpDX.2.6.3\build\SharpDX.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

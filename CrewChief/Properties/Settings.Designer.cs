@@ -142,7 +142,7 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool use_sweary_messages {
             get {
                 return ((bool)(this["use_sweary_messages"]));
@@ -268,10 +268,19 @@ namespace CrewChief.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
         public int spotter_overlap_delay {
             get {
                 return ((int)(this["spotter_overlap_delay"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool read_lap_times {
+            get {
+                return ((bool)(this["read_lap_times"]));
             }
         }
     }

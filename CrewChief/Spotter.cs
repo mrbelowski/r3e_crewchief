@@ -57,29 +57,32 @@ namespace CrewChief.Events
         private DateTime timeWhenWeThinkWeAreClear;
         private DateTime timeWhenWeThinkWeAreOverlapping;
 
+        private Boolean newlyClear = true;
+        private Boolean newlyOverlapping = true;
+
         public Spotter(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             channelOpen = false;
             timeOfLastHoldMessage = DateTime.Now;
-            timeWhenWeThinkWeAreClear = DateTime.Now.Add(TimeSpan.FromDays(1));
-            timeWhenWeThinkWeAreOverlapping = DateTime.Now.Add(TimeSpan.FromDays(1));
+            newlyClear = true;
+            newlyOverlapping = true;
         }
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return isSessionRunning;
+            return CommonData.isSessionRunning;
         }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             float currentSpeed = currentState.CarSpeed;
             float previousSpeed = lastState.CarSpeed;
-            if ((isRaceStarted || (enableInQualAndPractice && isSessionRunning)) && 
+            if ((CommonData.isRaceStarted || (enableInQualAndPractice && CommonData.isSessionRunning)) && 
                 currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate &&
                 currentState.ControlType == (int)Constant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {
@@ -122,13 +125,19 @@ namespace CrewChief.Events
                 if (channelOpen && !carAlongSideInFront && (!require2ClearsForClear || !carAlongSideInFrontPrevious) &&
                     !carAlongSideBehind && (!require2ClearsForClear || !carAlongSideBehindPrevious))
                 {
-                    // add some large amount from the time we think we're overlapping, to reset it
-                    timeWhenWeThinkWeAreOverlapping.Add(TimeSpan.FromDays(1));
+                    newlyOverlapping = true;
                     Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / currentSpeed);
                     Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " + carLengthToUse / currentSpeed);
                     Console.WriteLine("race time = " + currentState.Player.GameSimulationTime);
 
-                    if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay)) {
+                    if (newlyClear)
+                    {
+                        Console.WriteLine("Waiting " + clearMessageDelay);
+                        newlyClear = false;
+                        timeWhenWeThinkWeAreClear = now;
+                    }
+                    else if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay))
+                    {
                         channelOpen = false;
                         audioPlayer.removeImmediateClip(folderHoldYourLine);
                         audioPlayer.removeImmediateClip(folderStillThere);
@@ -137,13 +146,10 @@ namespace CrewChief.Events
                         audioPlayer.playClipImmediately(folderClear, clearMessage);
                         audioPlayer.closeChannel();
                     }
-                    timeWhenWeThinkWeAreClear = now;
                 }
                 else if ((carAlongSideInFront && (!require2OverlapsForHold || carAlongSideInFrontPrevious) && Math.Abs(closingSpeedInFront) < maxClosingSpeed) ||
                     (carAlongSideBehind && (!require2OverlapsForHold || carAlongSideBehindPrevious) && Math.Abs(closingSpeedBehind) < maxClosingSpeed))
                 {
-                    // add some large amount from the time we think we're clear, to reset it
-                    timeWhenWeThinkWeAreClear.Add(TimeSpan.FromDays(1));
                     Boolean frontOverlapIsReducing = carAlongSideInFront && closingSpeedInFront > 0;
                     Boolean rearOverlapIsReducing =  carAlongSideBehind && closingSpeedBehind > 0;
                     if (channelOpen && now > timeOfLastHoldMessage.Add(repeatHoldFrequency))
@@ -160,7 +166,13 @@ namespace CrewChief.Events
                     else if (!channelOpen &&
                         (rearOverlapIsReducing || (frontOverlapIsReducing && !spotterOnlyWhenBeingPassed)))
                     {
-                        if (now > timeWhenWeThinkWeAreOverlapping.Add(overlapMessageDelay))
+                        newlyClear = true;
+                        if (newlyOverlapping)
+                        {
+                            timeWhenWeThinkWeAreOverlapping = now;
+                            newlyOverlapping = false;
+                        }
+                        else if (now > timeWhenWeThinkWeAreOverlapping.Add(overlapMessageDelay))
                         {
                             Console.WriteLine("race time = " + currentState.Player.GameSimulationTime);
                             if (carAlongSideInFront)
@@ -182,7 +194,6 @@ namespace CrewChief.Events
                             holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
                             audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
                         }
-                        timeWhenWeThinkWeAreOverlapping = now;
                     }              
                 }
             }

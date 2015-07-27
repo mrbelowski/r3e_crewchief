@@ -7,6 +7,8 @@ namespace CrewChief.Events
 {
     class LapTimes : AbstractEvent
     {
+        Boolean readLapTimes = Properties.Settings.Default.read_lap_times;
+
         // for qualifying:
         // "that was a 1:34.2, you're now 0.4 seconds off the pace"
         private String folderLapTimeIntro = "lap_times/time_intro";   // this might be a blank wav file
@@ -53,7 +55,7 @@ namespace CrewChief.Events
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             lapTimesWindow = new List<float>(lapTimesWindowSize);
             lastConsistencyUpdate = 0;
@@ -64,18 +66,20 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return isSessionRunning;
+            return CommonData.isSessionRunning;
         }
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
         {
             // in race sessions (race only) the previousLapTime isn't set to -1 if that lap was invalid, so 
             // we need to record that it's invalid while we're actually on the lap
-            if (isSessionRunning && lapIsValid && currentState.CompletedLaps > 0 && !isNewLap && currentState.LapTimeCurrent == -1)
+            if (CommonData.isSessionRunning && lapIsValid && currentState.CompletedLaps > 0 &&
+                !CommonData.isNewLap && currentState.LapTimeCurrent == -1)
             {
                 lapIsValid = false;
             }
-            if (isSessionRunning && isNewLap && currentState.CompletedLaps > 1 && currentState.LapTimePrevious > 0)
+            if (CommonData.isSessionRunning && CommonData.isNewLap && currentState.CompletedLaps > 1 && 
+                currentState.LapTimePrevious > 0)
             {
                 if (lapTimesWindow == null)
                 {
@@ -88,18 +92,24 @@ namespace CrewChief.Events
                 {
                     // queue the actual laptime as a 'gap filler' - this is only played if the
                     // queue would otherwise be empty
-                    QueuedMessage gapFillerLapTime = new QueuedMessage(folderLapTimeIntro, null, 
+                    if (readLapTimes)
+                    {
+                        QueuedMessage gapFillerLapTime = new QueuedMessage(folderLapTimeIntro, null,
                         TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this);
-                    gapFillerLapTime.gapFiller = true;
-                    audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laptime", gapFillerLapTime);
-
+                        gapFillerLapTime.gapFiller = true;
+                        audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laptime", gapFillerLapTime);
+                    }
+                    
                     LastLapRating lastLapRating = getLastLapRating(currentState);
                     float currentLapTimeDeltaToLeader = getLapTimeDeltaToClassLeader(currentState);
                     if (lapDeltaToClassLeaderAtLastLap != -1 && (currentState.SessionType == (int)Constant.Session.Qualify || 
                         currentState.SessionType == (int)Constant.Session.Practice))
                     {
-                        audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceTime",
+                        if (readLapTimes)
+                        {
+                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceTime",
                                     new QueuedMessage(folderLapTimeIntro, null, TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this));
+                        }
                         // time delta to leader has changed to report it
                         if (lapDeltaToClassLeaderAtLastLap != currentLapTimeDeltaToLeader)
                         {

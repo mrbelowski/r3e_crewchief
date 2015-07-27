@@ -17,7 +17,8 @@ namespace CrewChief.Events
         private String folderPushExitingPits = "push_now/pits_exit_clear";
         private String folderTrafficBehindExitingPits = "push_now/pits_exit_traffic_behind";
 
-        private List<PushData> pushData;
+        private List<PushData> pushDataInFront;
+        private List<PushData> pushDataBehind;
         private Boolean playedNearEndTimePush;
         private int previousDataWindowSizeToCheck = 2;
         private Boolean playedNearEndLapsPush;
@@ -28,9 +29,10 @@ namespace CrewChief.Events
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
-            pushData = new List<PushData>();
+            pushDataInFront = new List<PushData>();
+            pushDataBehind = new List<PushData>();
             playedNearEndTimePush = false;
             playedNearEndLapsPush = false;
             drivingOutOfPits = false;
@@ -41,41 +43,25 @@ namespace CrewChief.Events
             return true;
         }
 
-        private Boolean isPushDataValid(int currentPosition, int numCars)
-        {
-            if (pushData[pushData.Count - 1].position != currentPosition || 
-                pushData[pushData.Count - 1].numCars != numCars)
-            {
-                return false;
-            }
-            Boolean pushDataValid = true;
-            for (int i = pushData.Count - 1; i >= pushData.Count - previousDataWindowSizeToCheck; i--)
-            {
-                if (pushData[i].position != pushData[i-1].position || pushData[i].numCars != pushData[i-1].numCars)
-                {
-                    pushDataValid = false;
-                    break;
-                }
-            }
-            return pushDataValid;
-        }
-
         private float getOpponentBestLapInWindow(Boolean ahead)
         {
             float bestLap = -1;
-            for (int i = pushData.Count - 1; i >= pushData.Count - previousDataWindowSizeToCheck; i--)
+            if (ahead)
             {
-                if (ahead)
+                for (int i = pushDataInFront.Count - 1; i >= pushDataInFront.Count - previousDataWindowSizeToCheck; i--)
                 {
-                    float thisLap = pushData[i].lapTime + (pushData[i - 1].gapInFront - pushData[i].gapInFront);
+                    float thisLap = pushDataInFront[i].lapTime + (pushDataInFront[i - 1].gap - pushDataInFront[i].gap);
                     if (bestLap == -1 || bestLap > thisLap)
                     {
                         bestLap = thisLap;
                     }
                 }
-                else
+            }
+            else
+            {
+                for (int i = pushDataBehind.Count - 1; i >= pushDataBehind.Count - previousDataWindowSizeToCheck; i--)
                 {
-                    float thisLap = pushData[i].lapTime - (pushData[i - 1].gapBehind - pushData[i].gapBehind);
+                    float thisLap = pushDataBehind[i].lapTime - (pushDataBehind[i - 1].gap - pushDataBehind[i].gap);
                     if (bestLap == -1 || bestLap > thisLap)
                     {
                         bestLap = thisLap;
@@ -87,36 +73,38 @@ namespace CrewChief.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (isRaceStarted) {
-                if (pushData == null)
+            if (CommonData.isRaceStarted)
+            {
+                if (pushDataInFront == null || pushDataBehind == null)
                 {
-                    clearStateInternal();
+                    clearState();
                 }
-                if (isNewLap)
+                if (CommonData.isNewLap)
                 {
-                    pushData.Add(new PushData(currentState.LapTimePrevious, currentState.TimeDeltaFront, 
-                        currentState.TimeDeltaBehind, currentState.Position, currentState.NumCars));
+                    if (CommonData.racingSameCarInFront)
+                    {
+                        pushDataInFront.Add(new PushData(currentState.LapTimePrevious, currentState.TimeDeltaFront));
+                    }
+                    else
+                    {
+                        pushDataInFront.Clear();
+                    }
+                    if (CommonData.racingSameCarBehind)
+                    {
+                        pushDataBehind.Add(new PushData(currentState.LapTimePrevious, currentState.TimeDeltaBehind));
+                    }
                 }
-                if (currentState.NumberOfLaps == -1 && !playedNearEndTimePush && pushData.Count >= previousDataWindowSizeToCheck && 
+                if (currentState.NumberOfLaps == -1 && !playedNearEndTimePush && 
                         currentState.SessionTimeRemaining < 4 * 60 && currentState.SessionTimeRemaining > 2 * 60) 
                 {
-                    if (isPushDataValid(currentState.Position, currentState.NumCars))
-                    {
-                        playedNearEndTimePush = true;
-                        // estimate the number of remaining laps - be optimistic...
-                        int numLapsLeft = (int)Math.Ceiling((double)currentState.SessionTimeRemaining / (double)currentState.LapTimeBest);
-                        Console.WriteLine("Estimated number of laps left = " + numLapsLeft);
-                        checkGaps(currentState, numLapsLeft);
-                    }
+                    // estimate the number of remaining laps - be optimistic...
+                    int numLapsLeft = (int)Math.Ceiling((double)currentState.SessionTimeRemaining / (double)currentState.LapTimeBest);
+                    playedNearEndTimePush = checkGaps(currentState, numLapsLeft);
                 }
                 else if (currentState.NumberOfLaps > 0 && currentState.NumberOfLaps - currentState.CompletedLaps <= 4 && 
-                    !playedNearEndLapsPush && pushData.Count >= previousDataWindowSizeToCheck)
+                    !playedNearEndLapsPush)
                 {
-                    if (isPushDataValid(currentState.Position, currentState.NumCars))
-                    {
-                        playedNearEndLapsPush = true;
-                        checkGaps(currentState, currentState.NumberOfLaps - currentState.CompletedLaps);
-                    }
+                    playedNearEndLapsPush = checkGaps(currentState, currentState.NumberOfLaps - currentState.CompletedLaps);
                 }
                 else if (currentState.PitWindowStatus == (int)Constant.PitWindow.Completed && lastState.PitWindowStatus == (int)Constant.PitWindow.StopInProgress)
                 {
@@ -140,20 +128,22 @@ namespace CrewChief.Events
             }
         }
 
-        private void checkGaps(Shared currentState, int numLapsLeft)
+        private Boolean checkGaps(Shared currentState, int numLapsLeft)
         {
+            Boolean playedMessage = false;
             Console.WriteLine("checking gaps...");
             if (currentState.Position > 1)
             {
                 Console.WriteLine("before end, could gain " + ((getOpponentBestLapInWindow(true) - currentState.LapTimeBest) * numLapsLeft) + 
                     " current delta = " + currentState.TimeDeltaFront);
             }
-            if (!isLast)
+            if (!CommonData.isLast)
             {
                 Console.WriteLine("before end, could lose " + ((currentState.LapTimeBest - getOpponentBestLapInWindow(false)) * numLapsLeft) +
                    " current delta = " + currentState.TimeDeltaBehind);
             }
-            if (currentState.Position > 1 && (getOpponentBestLapInWindow(true) - currentState.LapTimeBest) * numLapsLeft > currentState.TimeDeltaFront)
+            if (currentState.Position > 1 && pushDataInFront.Count >= previousDataWindowSizeToCheck && 
+                (getOpponentBestLapInWindow(true) - currentState.LapTimeBest) * numLapsLeft > currentState.TimeDeltaFront)
             {
                 // going flat out, we're going to catch the guy ahead us before the end
                 if (currentState.Position == 2)
@@ -172,35 +162,26 @@ namespace CrewChief.Events
                 {
                     audioPlayer.queueClip(folderPushToImprove, 20, this);
                 }
+                playedMessage = true;
             }
-            else if (!isLast && (currentState.LapTimeBest - getOpponentBestLapInWindow(false)) * numLapsLeft > currentState.TimeDeltaBehind)
+            else if (!CommonData.isLast && pushDataBehind.Count >= previousDataWindowSizeToCheck && 
+                (currentState.LapTimeBest - getOpponentBestLapInWindow(false)) * numLapsLeft > currentState.TimeDeltaBehind)
             {
                 // even with us going flat out, the guy behind is going to catch us before the end
                 audioPlayer.queueClip(folderPushToHoldPosition, 20, this);
-            }   
+                playedMessage = true;
+            }
+            return playedMessage;
         }
 
         private class PushData {
             public float lapTime;
-            public float gapInFront;
-            public float gapBehind;
-            public int position;
-            public int numCars;
+            public float gap;
 
-            public PushData(float lapTime, float gapInFront, float gapBehind, int position, int numCars)
+            public PushData(float lapTime, float gap)
             {
                 this.lapTime = lapTime;
-                this.gapInFront = gapInFront;
-                this.gapBehind = gapBehind;
-                this.position = position;
-                this.numCars = numCars;
-            }
-            public PushData(float gapInFront, float gapBehind, int position, int numCars)
-            {
-                this.gapInFront = gapInFront;
-                this.gapBehind = gapBehind;
-                this.position = position;
-                this.numCars = numCars;
+                this.gap = gap;
             }
         }
     }

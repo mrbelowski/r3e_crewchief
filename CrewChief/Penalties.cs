@@ -47,7 +47,7 @@ namespace CrewChief.Events
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             penaltyLap = -1;
             lapsCompleted = -1;
@@ -68,11 +68,11 @@ namespace CrewChief.Events
             if (eventSubType == folderThreeLapsToServe)
             {
                 Console.WriteLine("checking penalty validity, pen lap = " + penaltyLap + ", completed =" + lapsCompleted);
-                return hasOutstandingPenalty && lapsCompleted == penaltyLap && isSessionRunning;
+                return hasOutstandingPenalty && lapsCompleted == penaltyLap && CommonData.isSessionRunning;
             }
             else
             {
-                return hasOutstandingPenalty && isSessionRunning;
+                return hasOutstandingPenalty && CommonData.isSessionRunning;
             }
         }
 
@@ -102,7 +102,7 @@ namespace CrewChief.Events
         }
     
         override protected void triggerInternal(Shared lastState, Shared currentState) {
-            if (isRaceStarted && hasDriveThrough(currentState) || hasStopGo(currentState) || hasTimePenalty(currentState)) 
+            if (CommonData.isRaceStarted && hasDriveThrough(currentState) || hasStopGo(currentState) || hasTimePenalty(currentState)) 
             {
                 if (hasNewDriveThrough(lastState, currentState)) {
                     lapsCompleted = currentState.CompletedLaps;
@@ -131,7 +131,7 @@ namespace CrewChief.Events
                     }
                     hasOutstandingPenalty = true;
                 }
-                else if (isNewLap && (hasDriveThrough(currentState) || hasStopGo(currentState)))
+                else if (CommonData.isNewLap && (hasDriveThrough(currentState) || hasStopGo(currentState)))
                 {
                     lapsCompleted = currentState.CompletedLaps;
                     // dodgy check here - if the player's car is being driven by the AI, assume we're pitting
@@ -155,12 +155,12 @@ namespace CrewChief.Events
                         audioPlayer.queueClip(folderTwoLapsToServe, pitstopDelay, this);
                     }
                 }
-                else if (!playedPitNow && currentLapSector == 3 && hasStopGo(currentState) && lapsCompleted - penaltyLap == 2)
+                else if (!playedPitNow && CommonData.currentLapSector == 3 && hasStopGo(currentState) && lapsCompleted - penaltyLap == 2)
                 {
                     playedPitNow = true;
                     audioPlayer.queueClip(folderPitNowStopGo, 6, this);
                 }
-                else if (!playedPitNow && currentLapSector == 3 && hasDriveThrough(currentState) && lapsCompleted - penaltyLap == 2)
+                else if (!playedPitNow && CommonData.currentLapSector == 3 && hasDriveThrough(currentState) && lapsCompleted - penaltyLap == 2)
                 {
                     playedPitNow = true;
                     audioPlayer.queueClip(folderPitNowDriveThrough, 6, this);
@@ -171,7 +171,7 @@ namespace CrewChief.Events
                     audioPlayer.queueClip(folderTimePenalty, 0, this);
                 }
             } else  {
-                clearStateInternal();
+                clearState();
             } 
         }
     }

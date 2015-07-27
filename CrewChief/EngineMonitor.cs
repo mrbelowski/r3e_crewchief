@@ -63,7 +63,7 @@ namespace CrewChief.Events
             this.audioPlayer = audioPlayer;
         }
 
-        protected override void clearStateInternal()
+        public override void clearState()
         {
             lastStatusMessage = EngineStatus.ALL_CLEAR;
             engineData = new EngineData();
@@ -76,16 +76,16 @@ namespace CrewChief.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return isSessionRunning;
+            return CommonData.isSessionRunning;
         }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (isRaceStarted)
+            if (CommonData.isRaceStarted)
             {
                 if (engineData == null)
                 {
-                    clearStateInternal();
+                    clearState();
                 }
                 if (!gotBaseline)
                 {
