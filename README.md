@@ -31,6 +31,8 @@ For version 1.9 there's a crude spotter (it doesn't now which side the overlappi
 
 Changes
 -------
+Version 1.9.5: Fixed spotter bug that could leave the 'channel' open indefinitely; added events for cutting / off track; refactored shared state data; other refactoring which will hopefully make the addition of button events less painful; don't play pearls of wisdom when in qual or practice; reworked code which reads gap in front & gap behind, and 'push now' events. Previously these events would only play if the number of cars in the race and the player's position were unchanged - the app now tries to work out if we're racing the same car in front or behind regardless of disconnections or whatever, so these messages are more likely to trigger; made laptime reading optional (default: true); changed sweary messages default to false
+
 Version 1.9.4: much more reliable spotter messages (fixed some bugs in the code which checks for consistent overlaps / clear states); externalised a lot of spotter options
 
 Version 1.9.3: fixed completely broken pit window stuff for timed races; don't allow the spotter to call 'clear' unless there have been 2 consecutive game updates with no car along side; added a new event for 'push now' messages - should trigger near the end of the race if there's a chance of improving your position or being overtaken (but only if the number of cars in the race and your position are unchanged). Also adds a warning for exiting the pits into traffic
