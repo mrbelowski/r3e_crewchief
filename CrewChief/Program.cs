@@ -112,7 +112,7 @@ namespace CrewChief
                     double gameRunningTime = currentState.Player.GameSimulationTime;
                     // if we've gone back in time, this means a new session has started - 
                     // clear all the game state
-                    if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime)
+                    if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
                         && !stateCleared)
                     {
                         Console.WriteLine("Clearing game state...");

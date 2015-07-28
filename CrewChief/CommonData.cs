@@ -41,6 +41,12 @@ namespace CrewChief
             raceSessionLength = -1;
             isLast = false;
             sessionLengthSet = false;
+            racingSameCarInFront = false;
+            racingSameCarBehind = false;
+            isNewLap = false;
+            isNewSector = false;
+            isRaceStarted = false;
+            isSessionRunning = false;
         }
 
         public static void setCommonStateData(Shared lastState, Shared currentState)
@@ -68,7 +74,7 @@ namespace CrewChief
 
             isLast = currentState.Position == currentState.NumCars;
 
-            if (!sessionLengthSet && currentState.SessionType == (int)Constant.Session.Race &&
+            if (!sessionLengthSet && isRaceStarted &&
                 currentState.SessionTimeRemaining > 0 && lastState.SessionTimeRemaining > 0 &&
                 currentState.SessionTimeRemaining < lastState.SessionTimeRemaining)
             {

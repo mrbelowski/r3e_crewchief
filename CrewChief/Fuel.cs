@@ -106,7 +106,8 @@ namespace CrewChief.Events
                     }
                     else
                     {
-                        halfTime = currentState.SessionTimeRemaining / 2;
+                        halfTime = CommonData.raceSessionLength / 2;
+                        Console.WriteLine("Half time = " + halfTime);
                     }
                 }
                 if (CommonData.isNewLap && initialised && currentState.CompletedLaps > 0 && currentState.NumberOfLaps > 0)
@@ -167,6 +168,21 @@ namespace CrewChief.Events
                         audioPlayer.queueClip(folderOneLapEstimate, 0, this);
                     }
                 }
+                else if (initialised && currentState.NumberOfLaps < 0 && !playedHalfTimeFuelEstimate && currentState.SessionTimeRemaining <= halfTime && 
+                    averageUsagePerMinute > 0)
+                {
+                    Console.WriteLine("Half race distance. Fuel in tank = " + currentState.FuelLeft + ", average usage per minute = " + averageUsagePerMinute);
+                    playedHalfTimeFuelEstimate = true;
+                    if (averageUsagePerMinute * halfTime / 60 > currentState.FuelLeft
+                        && currentState.FuelLeft / fuelAfter15Seconds < 0.6)
+                    {
+                        audioPlayer.queueClip(folderHalfDistanceLowFuel, 0, this);
+                    }
+                    else
+                    {
+                        audioPlayer.queueClip(folderHalfDistanceGoodFuel, 0, this);
+                    }
+                }
                 else if (initialised && currentState.NumberOfLaps < 0 && currentState.Player.GameSimulationTime > gameTimeAtLastFuelWindowUpdate + (60 * fuelUseSampleTime)) 
                 {
                     // it's 2 minutes since the last fuel window check
@@ -191,21 +207,7 @@ namespace CrewChief.Events
                     }
                     int estimatedFuelMinutesLeft = (int)Math.Floor(currentState.FuelLeft / averageUsagePerMinute);
 
-                    if (!playedHalfTimeFuelEstimate && currentState.SessionTimeRemaining < halfTime && 
-                        currentState.SessionTimeRemaining > halfTime - 10)
-                    {
-                        playedHalfTimeFuelEstimate = true;
-                        if (averageUsagePerMinute * halfTime / 60 > currentState.FuelLeft 
-                            && currentState.FuelLeft / fuelAfter15Seconds < 0.6) 
-                        {
-                            audioPlayer.queueClip(folderHalfDistanceLowFuel, 0, this);
-                        }
-                        else
-                        {
-                            audioPlayer.queueClip(folderHalfDistanceGoodFuel, 0, this);
-                        }
-                    }
-                    else if (currentState.FuelLeft / averageUsagePerMinute < 2 && !playedTwoMinutesRemaining) {
+                    if (currentState.FuelLeft / averageUsagePerMinute < 2 && !playedTwoMinutesRemaining) {
                         playedTwoMinutesRemaining = true;
                         playedFiveMinutesRemaining = true;
                         playedTenMinutesRemaining = true;
