@@ -31,6 +31,8 @@ For version 1.9 there's a crude spotter (it doesn't now which side the overlappi
 
 Changes
 -------
+Version 1.9.7: Fixed a couple of array index bugs in the push now event and gap monitor event that could cause the app to crash
+
 Version 1.9.6: Fixed issue with race length in online sessions - this was being set to the length of the 'grid walk' phase, not the actual race. This caused issues with fuel use tracking / reporting; Added short delay to off-track events; removed some debug messages that were spamming the command window.
 
 Version 1.9.5: Fixed spotter bug that could leave the 'channel' open indefinitely; added events for cutting / off track; refactored shared state data; other refactoring which will hopefully make the addition of button events less painful; don't play pearls of wisdom when in qual or practice; reworked code which reads gap in front & gap behind, and 'push now' events. Previously these events would only play if the number of cars in the race and the player's position were unchanged - the app now tries to work out if we're racing the same car in front or behind regardless of disconnections or whatever, so these messages are more likely to trigger; made laptime reading optional (default: true); changed sweary messages default to false
