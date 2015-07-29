@@ -48,7 +48,7 @@ namespace CrewChief.Events
             float bestLap = -1;
             if (ahead)
             {
-                for (int i = pushDataInFront.Count - 1; i >= pushDataInFront.Count - previousDataWindowSizeToCheck; i--)
+                for (int i = pushDataInFront.Count - 1; i > pushDataInFront.Count - previousDataWindowSizeToCheck; i--)
                 {
                     float thisLap = pushDataInFront[i].lapTime + (pushDataInFront[i - 1].gap - pushDataInFront[i].gap);
                     if (bestLap == -1 || bestLap > thisLap)
@@ -59,7 +59,7 @@ namespace CrewChief.Events
             }
             else
             {
-                for (int i = pushDataBehind.Count - 1; i >= pushDataBehind.Count - previousDataWindowSizeToCheck; i--)
+                for (int i = pushDataBehind.Count - 1; i > pushDataBehind.Count - previousDataWindowSizeToCheck; i--)
                 {
                     float thisLap = pushDataBehind[i].lapTime - (pushDataBehind[i - 1].gap - pushDataBehind[i].gap);
                     if (bestLap == -1 || bestLap > thisLap)
@@ -92,6 +92,10 @@ namespace CrewChief.Events
                     if (CommonData.racingSameCarBehind)
                     {
                         pushDataBehind.Add(new PushData(currentState.LapTimePrevious, currentState.TimeDeltaBehind));
+                    }
+                    else
+                    {
+                        pushDataBehind.Clear();
                     }
                 }
                 if (currentState.NumberOfLaps == -1 && !playedNearEndTimePush && 

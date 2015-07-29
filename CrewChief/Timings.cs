@@ -102,7 +102,7 @@ namespace CrewChief.Events
 
                 // Play which ever is the smaller gap, but we're not interested if the gap is < 0.5 or > 20 seconds or hasn't changed:
                 Boolean playGapInFront = gapInFrontStatus != GapStatus.NONE && 
-                    (gapBehindStatus == GapStatus.NONE || gapsInFront[0] < gapsBehind[0]);
+                    (gapBehindStatus == GapStatus.NONE || (gapsInFront.Count() > 0 && gapsBehind.Count() > 0 && gapsInFront[0] < gapsBehind[0]));
 
                 Boolean playGapBehind = !playGapInFront && gapBehindStatus != GapStatus.NONE;
 
