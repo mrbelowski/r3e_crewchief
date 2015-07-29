@@ -141,19 +141,19 @@ namespace CrewChief.Events
                 // going flat out, we're going to catch the guy ahead us before the end
                 if (currentState.Position == 2)
                 {
-                    audioPlayer.queueClip(folderPushToGetWin, 20, this);
+                    audioPlayer.queueClip(folderPushToGetWin, 0, this);
                 }
                 else if (currentState.Position == 3)
                 {
-                    audioPlayer.queueClip(folderPushToGetSecond, 20, this);
+                    audioPlayer.queueClip(folderPushToGetSecond, 0, this);
                 }
                 else if (currentState.Position == 4)
                 {
-                    audioPlayer.queueClip(folderPushToGetThird, 20, this);
+                    audioPlayer.queueClip(folderPushToGetThird, 0, this);
                 }
                 else
                 {
-                    audioPlayer.queueClip(folderPushToImprove, 20, this);
+                    audioPlayer.queueClip(folderPushToImprove, 0, this);
                 }
                 playedMessage = true;
             }
@@ -161,7 +161,7 @@ namespace CrewChief.Events
                 (currentState.LapTimeBest - getOpponentBestLapInWindow(false)) * numLapsLeft > currentState.TimeDeltaBehind)
             {
                 // even with us going flat out, the guy behind is going to catch us before the end
-                audioPlayer.queueClip(folderPushToHoldPosition, 20, this);
+                audioPlayer.queueClip(folderPushToHoldPosition, 0, this);
                 playedMessage = true;
             }
             return playedMessage;
